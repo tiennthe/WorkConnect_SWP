@@ -77,12 +77,17 @@ public class AuthenticationController extends HttpServlet {
                 url = loginDoPost(request, response);
                 break;
             case "sign-up":
+            {
                 try {
-                url = signUp(request, response);
-            } catch (MessagingException ex) {
-                Logger.getLogger(AuthenticationController.class.getName()).log(Level.SEVERE, null, ex);
+                    url = signUp(request, response);
+                } catch (MessagingException ex) {
+                    Logger.getLogger(AuthenticationController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                break;
             }
-            break;
+            case "verify-otp":  // Handle OTP verification
+                url = verifyOtp(request, response);
+                break;
             default:
                 url = "home";
         }
@@ -249,6 +254,38 @@ public class AuthenticationController extends HttpServlet {
             return "view/authen/ConfirmOTP.jsp";  // Forward to OTP page after registration
         }
         return url;
+    }
+
+    private String verifyOtp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+
+        // Retrieve the OTP entered by the user and the OTP stored in session
+        try {
+            int enteredOtp = Integer.parseInt(request.getParameter("otp"));
+            int sessionOtp = (int) session.getAttribute("OTPCode");
+            // parse sang string và so sanh hai chuỗi
+            String inputOtp = Integer.toString(enteredOtp).trim();
+            String storedOtp = Integer.toString(sessionOtp).trim();
+            if (inputOtp.equals(storedOtp)) {
+                // OTP is correct, complete the registration process
+                Account account = (Account) session.getAttribute("userRegister");
+                accountDAO.insert(account);  // Save the user account to the database
+
+                // Clear the OTP from the session
+                session.removeAttribute("OTPCode");
+                session.removeAttribute("userRegister");
+
+                // Redirect to the login page
+                return "view/authen/login.jsp";
+            } else {
+                // OTP is incorrect, set an error message and stay on the OTP page
+                request.setAttribute("error", "Invalid OTP. Please try again.");
+                return "view/authen/ConfirmOTP.jsp";
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Invalid OTP. Please try again.");
+            return "view/authen/ConfirmOTP.jsp";
+        }
     }
 
     private String logOut(HttpServletRequest request, HttpServletResponse response) {
