@@ -45,8 +45,34 @@ public class AccountDAO extends GenericDAO<Account> {
         return insertGenericDAO(sql, parameterMap);
     }
     
-    //    danh sach tat ca cac account
     public List<Account> findAllAccounts() {
         return findAll();
+    }
+
+    public Account findUserByUsernameAndPassword(Account account) {
+        String sql = "SELECT * FROM [dbo].[Account] where username = ? and password = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("username", account.getUsername());
+        parameterMap.put("password", account.getPassword());
+        List<Account> list = queryGenericDAO(Account.class, sql, parameterMap);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    public boolean checkUsernameExist(Account account) {
+        String sql = "SELECT *\n"
+                + "  FROM [dbo].[Account]\n"
+                + "  where username = ? ";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("username", account.getUsername());
+        return !queryGenericDAO(Account.class, sql, parameterMap).isEmpty();
+    }
+
+    public boolean checkUserEmailExist(Account account) {
+        String sql = "SELECT *\n"
+                + "  FROM [dbo].[Account]\n"
+                + "  where email = ? ";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("email", account.getEmail());
+        return !queryGenericDAO(Account.class, sql, parameterMap).isEmpty();
     }
 }

@@ -1,18 +1,33 @@
 package java.controller;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
+
+import java.constant.CommonConst;
 import java.dao.AccountDAO;
+import java.model.Account;
+import java.sql.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.utils.Email;
+import java.validate.Validation;
 import java.io.IOException;
 
 @MultipartConfig
 @WebServlet(name = "AuthenticationController", urlPatterns = {"/authen"})
 public class AuthenticationController extends HttpServlet {
     private final AccountDAO accountDAO = new AccountDAO();
+    Validation valid = new Validation();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -26,11 +41,219 @@ public class AuthenticationController extends HttpServlet {
             case "login":
                 url = "view/authen/login.jsp";
                 break;
+            case "log-out":
+                url = logOut(request, response);
+                break;
+            case "change-password":
+                url = "view/authen/changePassword.jsp";
+                break;
+            case "sign-up":
+                url = "view/authen/register.jsp";
+                break;
+            case "view-profile":
+                url = "view/user/userProfile.jsp";
+                break;
+            case "edit-profile":
+                url = "view/user/editUserProfile.jsp";
+                break;
             default:
                 url = "view/authen/login.jsp";
         }
 
         // Forward to the appropriate page
         request.getRequestDispatcher(url).forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get action parameter
+        String action = request.getParameter("action") != null ? request.getParameter("action") : "";
+        String url = null;
+
+        // Handle POST requests based on the action
+        switch (action) {
+            case "login":
+                url = loginDoPost(request, response);
+                break;
+            case "sign-up":
+                try {
+                url = signUp(request, response);
+            } catch (MessagingException ex) {
+                Logger.getLogger(AuthenticationController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            break;
+            default:
+                url = "home";
+        }
+        // Forward to the appropriate page
+        request.getRequestDispatcher(url).forward(request, response);
+    }
+
+    private String loginDoPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String url = null;
+
+        // Get login credentials from request
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String remember = request.getParameter("rememberMe");
+
+        // Create cookies for username, password, and remember me
+        Cookie cUser = new Cookie("cu", username);
+        Cookie cPass = new Cookie("cp", password);
+        Cookie cRem = new Cookie("cr", remember);
+
+        // Set cookie max age (persistent for 1 day if "remember me" is checked)
+        if (remember != null) {
+            cUser.setMaxAge(60 * 60 * 24);
+            cPass.setMaxAge(60 * 60 * 24);
+            cRem.setMaxAge(60 * 60 * 24);
+        } else {
+            cUser.setMaxAge(0);
+            cPass.setMaxAge(0);
+            cRem.setMaxAge(0);
+        }
+
+        // Add cookies to the response
+        response.addCookie(cUser);
+        response.addCookie(cPass);
+        response.addCookie(cRem);
+
+        // Check credentials in the database
+        Account account = new Account();
+        account.setUsername(username);
+        account.setPassword(password);
+        Account accFound = accountDAO.findUserByUsernameAndPassword(account);
+
+        HttpSession session = request.getSession();
+
+        if (accFound == null) {
+            // If no account is found, show the incorrect username/password message
+            request.setAttribute("messLogin", "Username or Password Incorrect!");
+            url = "view/authen/login.jsp";
+        } else if (!accFound.isIsActive()) {
+            // If the account is found but inactive
+            request.setAttribute("messLogin", "Your account is deactivated. Please contact Admin by email to resolve this.");
+            url = "view/authen/login.jsp";
+        } else {
+            // If the account is found and active
+            session.setAttribute(CommonConst.SESSION_ACCOUNT, accFound);
+            session.setMaxInactiveInterval(60 * 60 * 24);
+
+            // Handle based on role
+            switch (accFound.getRoleId()) {
+                case 1: // Admin role
+                    url = "dashboard";
+                    break;
+                default:
+                    // If role is not recognized, redirect to login with error
+                    request.setAttribute("messLogin", "Invalid user role. Please contact support.");
+                    url = "view/authen/login.jsp";
+                    break;
+            }
+        }
+        return url;
+    }
+
+    private String signUp(HttpServletRequest request, HttpServletResponse response) throws MessagingException, ServletException, IOException {
+        String url;
+
+        // Get sign-up information
+        int roleId = Integer.parseInt(request.getParameter("role"));
+        String lastname = request.getParameter("lastname");
+        String firstname = request.getParameter("firstname");
+        String gender = request.getParameter("gender");
+        Date dob = Date.valueOf(request.getParameter("dob"));
+        int yearofbirth = dob.toLocalDate().getYear();
+        String username = request.getParameter("username");
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+        // set sign-up information to request to save the data in the form
+        request.setAttribute("role", roleId);
+        request.setAttribute("lname", lastname);
+        request.setAttribute("fname", firstname);
+        request.setAttribute("gender", gender);
+        request.setAttribute("dob", dob);
+        request.setAttribute("username", username);
+        request.setAttribute("email", email);
+        request.setAttribute("password", password);
+
+        // Create account object
+        Account account = new Account();
+        account.setRoleId(roleId);
+        account.setLastName(lastname);
+        account.setFirstName(firstname);
+        switch (gender) {
+            case "male":
+                account.setGender(true);
+                break;
+            case "female":
+                account.setGender(false);
+                break;
+            default:
+                account.setGender(true);
+        }
+        account.setDob(dob);
+        account.setUsername(username);
+        account.setEmail(email);
+        account.setPassword(password);
+
+        // Check if username or email already exists
+        boolean isExistUsername = accountDAO.checkUsernameExist(account);
+        boolean isExistUserEmail = accountDAO.checkUserEmailExist(account);
+
+        // Handle validation errors
+        // Initialize error messages
+        Map<String, String> errorMessages = new HashMap<>();
+
+        if (!valid.checkName(firstname)) {
+            errorMessages.put("errorFname", "Your first name is invalid!!");
+        }
+        if (!valid.checkYearOfBirth(yearofbirth)) {
+            errorMessages.put("errorDob", "You must be between 17 and 50 years old!");
+        }
+        if (!valid.checkName(lastname)) {
+            errorMessages.put("errorLname", "Your last name is invalid!!");
+        }
+        if (!valid.checkUserName(username)) {
+            errorMessages.put("errorUsername", "Your username must not contain special characters");
+        }
+        if (isExistUsername) {
+            errorMessages.put("errorUsernameExits", "Username exists!!");
+        }
+        if (isExistUserEmail) {
+            errorMessages.put("errorEmail", "Email exists!!");
+        }
+        if (!valid.checkPassword(password)) {
+            errorMessages.put("errorPassword", "Password must follow the convention!!");
+        }
+
+        // Check if there are any errors
+        if (!errorMessages.isEmpty()) {
+            // Set error messages in request attributes
+            for (Map.Entry<String, String> entry : errorMessages.entrySet()) {
+                request.setAttribute(entry.getKey(), entry.getValue());
+            }
+            url = "view/authen/register.jsp";
+        } else {
+            // Generate OTP and send email
+            int sixDigitNumber = 100000 + new Random().nextInt(900000);
+            Email.sendEmail(email, "OTP Register Account", "Hello, your OTP code is: " + sixDigitNumber);
+
+            // Store OTP and account info in session
+            HttpSession session = request.getSession();
+            session.setAttribute("OTPCode", sixDigitNumber);
+            session.setAttribute("userRegister", account);
+
+            // Forward to OTP confirmation page
+            return "view/authen/ConfirmOTP.jsp";  // Forward to OTP page after registration
+        }
+        return url;
+    }
+
+    private String logOut(HttpServletRequest request, HttpServletResponse response) {
+        HttpSession session = request.getSession();
+        session.removeAttribute("account");
+        return "home";
     }
 }

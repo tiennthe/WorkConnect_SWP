@@ -238,6 +238,89 @@ public abstract class GenericDAO<T> extends DBContext {
         return id;
     }
 
+    /**
+     * Hàm này sử dụng để get dữ liệu từ database lên dựa trên tên bảng mà bạn
+     * mong muốn Condition (optional) là ám chỉ những giá trị như and hoặc
+     * or.Hãy sử dụng những biến sẵn có CONDITION_OR, CONDITION_AND ví dụ:
+     * GenericDAO.CONDITION_OR hoặc GenericDAO.CONDITION_AND.Hàm sẽ mặc định trả
+     * về một List có thể có giá trị hoặc List rỗng
+     *
+     * @param clazz: tên bảng bạn muốn get dữ liệu về
+     * @param sql: câu lệnh SQL
+     * @param parameterHashmap: hashmap chứa các parameter
+     * @return list
+     */
+    protected List<T> queryGenericDAO(Class<T> clazz, String sql, Map<String, Object> parameterHashmap) {
+
+        List<T> result = new ArrayList<>();
+        try {
+            // Lấy kết nối
+            connection = new DBContext().connection;
+
+            //List parameter
+            List<Object> parameters = new ArrayList<>();
+
+            // Thêm điều kiện 
+            if (parameterHashmap != null && !parameterHashmap.isEmpty()) {
+                // code thêm điều kiện 
+                for (Map.Entry<String, Object> entry : parameterHashmap.entrySet()) {
+                    Object conditionValue = entry.getValue();
+
+                    parameters.add(conditionValue);
+                }
+                // Xóa phần AND hoặc OR cuối cùng khỏi câu truy vấn
+            }
+
+            // Chuẩn bị câu lệnh
+            statement = connection.prepareStatement(sql);
+
+            // Gán giá trị cho các tham số của câu truy vấn
+            int index = 1;
+            for (Object value : parameters) {
+                statement.setObject(index, value);
+                index++;
+            }
+
+            // Thực thi truy vấn
+            resultSet = statement.executeQuery();
+
+            // Khai báo danh sách kết quả
+            // Duyệt result set   
+            while (resultSet.next()) {
+                // Gọi hàm mapRow để map đối tượng
+                T obj = mapRow(resultSet, clazz);
+
+                // Thêm vào danh sách kết quả
+                result.add(obj);
+            }
+
+            return result;
+        } catch (IllegalAccessException
+                | IllegalArgumentException
+                | InstantiationException
+                | NoSuchMethodException
+                | InvocationTargetException
+                | SQLException e) {
+            System.err.println("4USER: Bắn Exception ở hàm query: " + e.getMessage());
+        } finally {
+            try {
+                // Đóng kết nối và các tài nguyên
+                if (resultSet != null) {
+
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("4USER: Bắn Exception ở hàm query: " + e.getMessage());
+            }
+        }
+        return result;
+    }
+
     private static <T> T mapRow(ResultSet rs, Class<T> clazz) throws
             SQLException,
             NoSuchMethodException,
