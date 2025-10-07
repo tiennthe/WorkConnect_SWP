@@ -88,6 +88,9 @@ public class AuthenticationController extends HttpServlet {
             case "verify-otp":  // Handle OTP verification
                 url = verifyOtp(request, response);
                 break;
+            case "edit-profile":
+                url = editProfile(request, response);
+                break;
             default:
                 url = "home";
         }
@@ -149,6 +152,9 @@ public class AuthenticationController extends HttpServlet {
             switch (accFound.getRoleId()) {
                 case 1: // Admin role
                     url = "dashboard";
+                    break;
+                case 2: // Job seeker role
+                    url = "HomeSeeker";
                     break;
                 default:
                     // If role is not recognized, redirect to login with error
@@ -292,5 +298,105 @@ public class AuthenticationController extends HttpServlet {
         HttpSession session = request.getSession();
         session.removeAttribute("account");
         return "home";
+    }
+
+    private String editProfile(HttpServletRequest request, HttpServletResponse response) {
+        String url = "";
+        try {
+            // Lấy các thông tin từ form
+            String lastName = request.getParameter("lastName");
+            String firstName = request.getParameter("firstName");
+            String phone = request.getParameter("phone");
+            Date dob = Date.valueOf(request.getParameter("date"));
+            int yearofbirth = dob.toLocalDate().getYear();
+            String gender = request.getParameter("gender");
+            String address = request.getParameter("address");
+            String email = request.getParameter("email");
+
+            // Lấy ảnh avatar từ form (nếu có)
+            Part part = request.getPart("avatar");
+            String imagePath = null;
+
+            // Nếu có ảnh mới thì xử lý tải lên
+            if (part != null && part.getSize() > 0 && part.getSubmittedFileName() != null && !part.getSubmittedFileName().isEmpty()) {
+                // Đường dẫn lưu ảnh
+                String path = request.getServletContext().getRealPath("/images");
+                File dir = new File(path);
+
+                // Kiểm tra xem thư mục có tồn tại không, nếu không thì tạo mới
+                if (!dir.exists()) {
+                    dir.mkdirs(); // Tạo thư mục nếu chưa tồn tại
+                }
+
+                // Tạo file ảnh trong thư mục images
+                File image = new File(dir, part.getSubmittedFileName());
+
+                // Ghi file ảnh vào đường dẫn
+                part.write(image.getAbsolutePath());
+
+                // Lấy đường dẫn tương đối của ảnh để lưu vào database
+                imagePath = request.getContextPath() + "/images/" + image.getName();
+            }
+
+            // Lấy session và đối tượng Account hiện tại
+            HttpSession session = request.getSession();
+            Account accountEdit = (Account) session.getAttribute(CommonConst.SESSION_ACCOUNT);
+
+            // Cập nhật thông tin trong đối tượng Account
+            accountEdit.setLastName(lastName);
+            accountEdit.setFirstName(firstName);
+            accountEdit.setPhone(phone);
+            accountEdit.setDob(dob);
+            accountEdit.setGender(gender.equalsIgnoreCase("male"));
+            accountEdit.setAddress(address);
+            accountEdit.setEmail(email);
+
+            // Nếu có ảnh mới, cập nhật ảnh avatar, nếu không, giữ lại ảnh hiện tại
+            if (imagePath != null) {
+                accountEdit.setAvatar(imagePath);
+            }
+
+            // Kiểm tra điều kiện hợp lệ cho ngày sinh và số điện thoại
+            List<String> errorsMessage = new ArrayList<>();
+            if (!valid.checkYearOfBirth(yearofbirth)) {
+                errorsMessage.add("You must be between 17 and 50 years old!");
+            }
+            if (!valid.CheckPhoneNumber(phone)) {
+                errorsMessage.add("Phone number is not valid!");
+            }
+            if (!valid.checkName(lastName)) {
+                errorsMessage.add("Last name is invalid!");
+            }
+            if (!valid.checkName(firstName)) {
+                errorsMessage.add("First name is invalid!");
+            }
+
+            // Nếu có lỗi, đặt thông báo lỗi vào request và quay lại trang chỉnh sửa hồ sơ
+            if (!errorsMessage.isEmpty()) {
+                if (accountEdit.getRoleId() == 2) {
+                    request.setAttribute("errorsMessage", errorsMessage);
+                    url = "view/recruiter/editRecruiterProfile.jsp";
+                }
+                if (accountEdit.getRoleId() == 3) {
+                    request.setAttribute("errorsMessage", errorsMessage);
+                    url = "view/user/editUserProfile.jsp";
+                }
+
+            } else {
+                accountDAO.updateAccount(accountEdit);
+                request.setAttribute("successMessage", "Profile updated successfully.");
+                if (accountEdit.getRoleId() == 2) {
+                    url = "view/recruiter/editRecruiterProfile.jsp";
+                }
+                if (accountEdit.getRoleId() == 3) {
+                    url = "view/user/editUserProfile.jsp";
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            url = "view/user/editUserProfile.jsp";
+        }
+        return url;
     }
 }
