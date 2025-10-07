@@ -1,11 +1,17 @@
-package java.dao;
+package dao;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.*;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -319,6 +325,60 @@ public abstract class GenericDAO<T> extends DBContext {
             }
         }
         return result;
+    }
+
+    /**
+     * Hàm này sử dụng để update thông tin của một đối tượng trong Database.Hãy
+     * nhớ rằng hàm này không update ID vì mặc định các bảng sẽ để ID tự động
+     * tăng
+     *
+     * @param sql
+     * @param parameterMap: hashmap chứa các parameter
+     * @return true: update thành công | false: update thất bại
+     */
+    protected boolean updateGenericDAO(String sql, Map<String, Object> parameterMap) {
+
+        List<Object> parameters = new ArrayList<>();
+
+        for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
+            Object conditionValue = entry.getValue();
+
+            parameters.add(conditionValue);
+        }
+
+        try {
+            connection = new DBContext().connection;
+            connection.setAutoCommit(false);
+            statement = connection.prepareStatement(sql);
+
+            int index = 1;
+            for (Object value : parameters) {
+                statement.setObject(index, value);
+                index++;
+            }
+            statement.executeUpdate();
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                System.err.println("4USER: Bắn Exception ở hàm update: " + ex.getMessage());
+            }
+            System.err.println("4USER: Bắn Exception ở hàm update: " + e.getMessage());
+            return false;
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("4USER: Bắn Exception ở hàm update: " + e.getMessage());
+            }
+        }
     }
 
     private static <T> T mapRow(ResultSet rs, Class<T> clazz) throws

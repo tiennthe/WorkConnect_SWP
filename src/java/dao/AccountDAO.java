@@ -1,8 +1,9 @@
-package java.dao;
+package dao;
 
-import java.model.Account;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import model.Account;
 
 public class AccountDAO extends GenericDAO<Account> {
 
@@ -74,5 +75,49 @@ public class AccountDAO extends GenericDAO<Account> {
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("email", account.getEmail());
         return !queryGenericDAO(Account.class, sql, parameterMap).isEmpty();
+    }
+
+    public void updateAccount(Account account) {
+        String sql = "UPDATE [dbo].[Account]\n"
+                + "   SET [username] = ?\n"
+                + "      ,[password] = ?\n"
+                + "      ,[email] = ?\n"
+                + "      ,[phone] = ?\n"
+                + "      ,[firstName] = ?\n"
+                + "      ,[lastName] = ?\n"
+                + "      ,[dob] = ?\n"
+                + "      ,[address] = ?\n"
+                + "      ,[avatar] = ?\n"
+                + "      ,[roleId] = ?\n"
+                + "      ,[isActive] = ?\n"
+                + "      ,[createAt] = ?\n"
+                + "      ,[updatedAt] = getDate()\n"
+                + "      ,[gender] = ?\n"
+                + " WHERE id = ?";
+
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("username", account.getUsername());
+        parameterMap.put("password", account.getPassword());
+        parameterMap.put("email", account.getEmail());
+        parameterMap.put("phone", account.getPhone());
+        parameterMap.put("firstName", account.getFirstName());
+        parameterMap.put("lastName", account.getLastName());
+        parameterMap.put("dob", account.getDob());
+        parameterMap.put("address", account.getAddress());
+        parameterMap.put("avatar", account.getAvatar());
+        parameterMap.put("roleId", (Integer) account.getRoleId());
+        parameterMap.put("isActive", account.isIsActive());
+        parameterMap.put("createAt", account.getCreateAt());
+        parameterMap.put("gender", account.isGender());
+        parameterMap.put("id", account.getId());
+        updateGenericDAO(sql, parameterMap);
+    }
+
+    public Account findUserById(int id) {
+        String sql = "SELECT * FROM [dbo].[Account] where id = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("id", id);
+        List<Account> list = queryGenericDAO(Account.class, sql, parameterMap);
+        return list.isEmpty() ? null : list.get(0);
     }
 }

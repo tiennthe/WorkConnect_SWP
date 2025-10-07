@@ -1,19 +1,18 @@
-package java.dao;
+package dao;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Scanner;
+
 import model.JobSeekers;
 
 public class JobSeekerDAO extends GenericDAO<JobSeekers> {
 
-    @Override
     public List<JobSeekers> findAll() {
         return queryGenericDAO(JobSeekers.class);
     }
 
     // Insert a new Job Seeker
-    @Override
     public int insert(JobSeekers t) {
         String sql = "INSERT INTO [dbo].[JobSeekers] ([AccountID]) VALUES (?)";
         parameterMap = new LinkedHashMap<>();
