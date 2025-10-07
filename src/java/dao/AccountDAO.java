@@ -120,4 +120,14 @@ public class AccountDAO extends GenericDAO<Account> {
         List<Account> list = queryGenericDAO(Account.class, sql, parameterMap);
         return list.isEmpty() ? null : list.get(0);
     }
+
+    public void updatePasswordbyEmail(Account account) {
+        String sql = "UPDATE [dbo].[Account]\n"
+                + "   SET [password] = ?\n"
+                + " WHERE email = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("password", account.getPassword());
+        parameterMap.put("email", account.getEmail());
+        updateGenericDAO(sql, parameterMap);
+    }
 }

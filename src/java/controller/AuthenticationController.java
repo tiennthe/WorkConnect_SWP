@@ -95,6 +95,21 @@ public class AuthenticationController extends HttpServlet {
             case "edit-profile":
                 url = editProfile(request, response);
                 break;
+            case "forgot-password":
+                try {
+                    url = sendResetOtp(request, response); // Handle OTP for password reset
+                } catch (MessagingException ex) {
+                    Logger.getLogger(AuthenticationController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                break;
+            case "verify-reset-otp": // Handle OTP verification for password reset
+                url = verifyResetOtp(request, response);
+                break;
+            case "reset-password":
+                url = resetPassword(request, response);
+                break;
+            case "log-out":
+                url = logOut(request, response);
             default:
                 url = "home";
         }
@@ -402,5 +417,108 @@ public class AuthenticationController extends HttpServlet {
             url = "view/user/editUserProfile.jsp";
         }
         return url;
+    }
+
+    private String sendResetOtp(HttpServletRequest request, HttpServletResponse response) throws MessagingException, ServletException, IOException {
+        String url;
+
+        // Get user email from the request
+        String email = request.getParameter("email");
+        Account account = new Account();
+        account.setEmail(email);
+
+        // Check if the email exists in the database
+        boolean isExistUserEmail = accountDAO.checkUserEmailExist(account); // Pass the email to check
+
+        if (!isExistUserEmail) {
+            // Email does not exist, set error message and stay on the forgot password page
+            request.setAttribute("error", "Email does not exist. Please try again.");
+            url = "view/authen/forgotPassword.jsp"; // Stay on forgot password page
+        } else {
+            // Generate a 6-digit OTP and send it to the user's email
+            int sixDigitNumber = 100000 + new Random().nextInt(900000); //SWT: Bugs
+            Email.sendEmail(email, "OTP Reset Password", "Your OTP code is: " + sixDigitNumber);
+
+            // Store OTP and account info in the session
+            HttpSession session = request.getSession();
+            session.setAttribute("ResetOTPCode", sixDigitNumber);
+            session.setAttribute("userResetEmail", email); // Store email for verification later
+
+            // Forward to OTP confirmation page for password reset
+            url = "view/authen/forgotPasswordOTP.jsp"; // OTP page
+        }
+
+        return url;
+    }
+
+    private String verifyResetOtp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        try {
+            int enteredOtp = Integer.parseInt(request.getParameter("otp"));
+            int sessionOtp = (int) session.getAttribute("ResetOTPCode");
+//            parse sang string và so sanh hai chuỗi
+            String inputOtp = Integer.toString(enteredOtp).trim();
+            String storedOtp = Integer.toString(sessionOtp).trim();
+            if (inputOtp.equals(storedOtp)) {
+                // OTP is correct, forward to the reset password page
+                return "view/authen/resetPassword.jsp";
+            } else {
+                // OTP is incorrect, set an error message and stay on the OTP page
+                request.setAttribute("error", "Invalid OTP. Please try again.");
+                return "view/authen/forgotPasswordOTP.jsp";
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Invalid OTP. Please try again.");
+            return "view/authen/forgotPasswordOTP.jsp";
+        }
+    }
+
+    // Đặt lại mật khẩu
+    private String resetPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+
+        // Lấy email từ session (đã lưu trong quá trình gửi OTP)
+        String email = (String) session.getAttribute("userResetEmail");
+
+        // Lấy mật khẩu và mật khẩu xác nhận từ request
+        String newPassword = request.getParameter("password");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        if (!newPassword.equals(confirmPassword)) {
+            // Mật khẩu và xác nhận mật khẩu không khớp
+            request.setAttribute("error", "Passwords do not match. Please try again.");
+            return "view/authen/resetPassword.jsp";
+        } else if (!valid.checkPassword(newPassword)) {
+            request.setAttribute("error", "The new password must be 8-20 characters long, and include at "
+                    + "least one letter and one special character.");
+            return "view/authen/resetPassword.jsp";
+        } else {
+            // Get user email from the request
+            Account account = new Account();
+            account.setEmail(email);
+
+            // Check if the email exists in the database
+            boolean isExistUserEmail = accountDAO.checkUserEmailExist(account); // Pass the email to check
+
+            if (isExistUserEmail) {
+                // Mã hóa mật khẩu mới nếu cần (tuỳ thuộc vào cơ chế mã hóa của bạn)
+                account.setPassword(newPassword);
+
+                // Cập nhật mật khẩu vào cơ sở dữ liệu
+                accountDAO.updatePasswordbyEmail(account);
+
+                // Xóa thông tin liên quan đến reset password trong session
+                session.removeAttribute("userResetEmail");
+                session.removeAttribute("ResetOTPCode");
+
+                // Chuyển hướng đến trang đăng nhập với thông báo thành công
+                request.setAttribute("message", "Password successfully updated! Please login with your new password.");
+                return "view/authen/login.jsp";
+            } else {
+                // Không tìm thấy tài khoản, báo lỗi
+                request.setAttribute("error", "User not found. Please try again.");
+                return "view/authen/resetPassword.jsp";
+            }
+        }
     }
 }
