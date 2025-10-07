@@ -1,27 +1,31 @@
-package java.controller;
+package controller;
 
+import java.io.File;
+import java.io.IOException;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import constant.CommonConst;
+import dao.AccountDAO;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.mail.MessagingException;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.annotation.WebServlet;
-
-import java.constant.CommonConst;
-import java.dao.AccountDAO;
-import java.model.Account;
-import java.sql.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.utils.Email;
-import java.validate.Validation;
-import java.io.IOException;
+import jakarta.servlet.http.Part;
+import model.Account;
+import utils.Email;
+import validate.Validation;
 
 @MultipartConfig
 @WebServlet(name = "AuthenticationController", urlPatterns = {"/authen"})

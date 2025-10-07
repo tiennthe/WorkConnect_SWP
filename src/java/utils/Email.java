@@ -1,6 +1,7 @@
-package java.utils;
+package utils;
 
 import java.util.Properties;
+
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.PasswordAuthentication;
