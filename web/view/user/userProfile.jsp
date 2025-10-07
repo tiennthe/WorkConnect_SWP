@@ -109,7 +109,7 @@
 
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email</label>
-                                    <input type="email" id="email" class="form-control" placeholder="jobpath@gmail.com" required readonly value="${sessionScope.account.email}">
+                                    <input type="email" id="email" class="form-control" placeholder="WorkConnect@gmail.com" required readonly value="${sessionScope.account.email}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="phone" class="form-label">Phone Number</label>
