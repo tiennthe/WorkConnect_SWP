@@ -100,17 +100,35 @@ public class SeekerFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain)
             throws IOException, ServletException {
-        
+
         if (debug) {
             log("SeekerFilter:doFilter()");
         }
-        
+
         doBeforeProcessing(request, response);
-        
+
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        String requestPath = httpRequest.getRequestURI();
+        String contextPath = httpRequest.getContextPath();
+        String path = requestPath.substring(contextPath.length());
+
+        // Exclude public paths from filter
+        if (path.equals("/home") || path.equals("/authen") ||
+            path.startsWith("/assets/") || path.startsWith("/view/authen/") ||
+            path.startsWith("/view/common/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         HttpSession session = httpRequest.getSession(false);
-        
+
+        if (session == null) {
+            httpResponse.sendRedirect(httpRequest.getContextPath() + "/home");
+            return;
+        }
+
         Account account = (Account) session.getAttribute(CommonConst.SESSION_ACCOUNT);
         //kiem tra dang nhap chua da
         if (account == null) {
@@ -119,10 +137,10 @@ public class SeekerFilter implements Filter {
         } else {
             //check quyen
             if (account.getRoleId() != 3) {
-                
+
                 httpResponse.sendRedirect(httpRequest.getContextPath() + "/home");
                 return;
-                
+
             }
         }
         Throwable problem = null;

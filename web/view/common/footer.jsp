@@ -4,9 +4,9 @@
             <div class="footer__wrapper d-flex flex-wrap justify-content-between pt-60 pb-60">
                 <div class="rts__footer__widget text-center text-md-start mb-4 mt-3">
                     <a href="index.html" class="footer__logo" aria-label="logo">
-                        <img src="${pageContext.request.contextPath}/assets/img/logo/logo.svg" width="160" height="40" alt="logo">
+                        <img src="${pageContext.request.contextPath}/assets/img/logo/logo.png" width="160" height="40" alt="logo">
                     </a>
-                    <p class="mt-3">Empowering connections between job seekers and employers—simpler, smarter, faster.</p>
+                    <p class="mt-3">Empowering connections between job seekers and employers simpler, smarter, faster.</p>
                 </div>
 
                 <div class="rts__footer__widget mb-4">

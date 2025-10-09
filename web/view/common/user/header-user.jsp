@@ -6,7 +6,7 @@
             <!-- Logo -->
             <div class="rts__logo">
                 <a href="${pageContext.request.contextPath}/HomeSeeker" class="d-flex align-items-center">
-                    <img class="logo__image" src="${pageContext.request.contextPath}/assets/img/logo/logo.svg" 
+                    <img class="logo__image" src="${pageContext.request.contextPath}/assets/img/logo/logo.png" 
                          width="160" height="40" alt="logo" class="me-2">
                 </a>
             </div>
@@ -60,7 +60,7 @@
 
                         <!-- Dropdown Menu -->
                         <ul class="dropdown-menu dropdown-menu-end shadow-lg animate__animated animate__fadeIn">
-                            <li><a class="dropdown-item text-dark" href="${pageContext.request.contextPath}/JobSeekerCheck">
+                            <li><a class="dropdown-item text-dark" href="${pageContext.request.contextPath}/authen?action=view-profile">
                                 <i class="fa-solid fa-user me-2"></i> Profile</a></li>
                             <li><a class="dropdown-item text-dark" href="${pageContext.request.contextPath}/cv">
                                 <i class="fa-solid fa-file me-2"></i> Manage your CV</a></li>
