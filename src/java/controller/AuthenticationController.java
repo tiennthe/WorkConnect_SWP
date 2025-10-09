@@ -46,8 +46,8 @@ public class AuthenticationController extends HttpServlet {
                 url = "view/authen/login.jsp";
                 break;
             case "log-out":
-                url = logOut(request, response);
-                break;
+                logOut(request, response);
+                return;
             case "change-password":
                 url = "view/authen/changePassword.jsp";
                 break;
@@ -109,9 +109,11 @@ public class AuthenticationController extends HttpServlet {
                 url = resetPassword(request, response);
                 break;
             case "log-out":
-                url = logOut(request, response);
+                logOut(request, response);
+                return;
             default:
-                url = "home";
+                response.sendRedirect(request.getContextPath() + "/home");
+                return;
         }
         // Forward to the appropriate page
         request.getRequestDispatcher(url).forward(request, response);
@@ -172,7 +174,7 @@ public class AuthenticationController extends HttpServlet {
                 case 1: // Admin role
                     url = "dashboard";
                     break;
-                case 2: // Job seeker role
+                case 3: // Job seeker role
                     url = "HomeSeeker";
                     break;
                 default:
@@ -276,7 +278,7 @@ public class AuthenticationController extends HttpServlet {
             session.setAttribute("userRegister", account);
 
             // Forward to OTP confirmation page
-            return "view/authen/ConfirmOTP.jsp";  // Forward to OTP page after registration
+            return "view/authen/confirmOTP.jsp";  // Forward to OTP page after registration
         }
         return url;
     }
@@ -309,14 +311,15 @@ public class AuthenticationController extends HttpServlet {
             }
         } catch (Exception e) {
             request.setAttribute("error", "Invalid OTP. Please try again.");
-            return "view/authen/ConfirmOTP.jsp";
+            return "view/authen/confirmOTP.jsp";
         }
     }
 
-    private String logOut(HttpServletRequest request, HttpServletResponse response) {
+    private String logOut(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession();
-        session.removeAttribute("account");
-        return "home";
+        session.invalidate();
+        response.sendRedirect(request.getContextPath() + "/home");
+        return null;
     }
 
     private String editProfile(HttpServletRequest request, HttpServletResponse response) {

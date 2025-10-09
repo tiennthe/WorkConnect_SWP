@@ -1,9 +1,11 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package validate;
-
 import java.time.Year;
 
 public class Validation {
-
     public boolean checkPassword(String password) {
         // Biểu thức chính quy kiểm tra mật khẩu:
         // - Phải có ít nhất 1 chữ cái hoa
@@ -53,11 +55,9 @@ public class Validation {
     // Method to check if the input has at least 30 characters
     public boolean checkAtLeast30Chars(String input) {
         // Check if input meets the minimum length requirement
-        if (input.length() >= 30) {
-            return true; // Input is valid
-        } else {
-            return false; // Input is not valid
-        }
+        // Input is valid
+        
+        return input.length() >= 30;
     }
 
     // Hàm kiểm tra mật khẩu hiện tại và mật khẩu mới có khác nhau hay không
@@ -74,5 +74,4 @@ public class Validation {
         String regex = "^\\d{5}$";
         return businessCode.matches(regex);
     }
-
 }
