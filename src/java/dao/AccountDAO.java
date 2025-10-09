@@ -130,4 +130,34 @@ public class AccountDAO extends GenericDAO<Account> {
         parameterMap.put("email", account.getEmail());
         updateGenericDAO(sql, parameterMap);
     }
+    
+    public void deactiveAccount(Account account) {
+        String sql = "UPDATE [dbo].[Account]\n"
+                + "   SET [isActive] = ?\n"
+                + " WHERE id = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("isActive", 0);
+        parameterMap.put("id", account.getId());
+        updateGenericDAO(sql, parameterMap);
+    }
+    
+    public void updatePassword(Account account) {
+        String sql = "UPDATE [dbo].[Account]\n"
+                + "   SET [password] = ?\n"
+                + " WHERE id = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("password", account.getPassword());
+        parameterMap.put("id", account.getId());
+        updateGenericDAO(sql, parameterMap);
+    }
+    
+    public void updatePasswordByUsername(Account account) {
+        String sql = "UPDATE [dbo].[Account]\n"
+                + "   SET [password] = ?\n, [updatedAt] = (getDate())"
+                + " WHERE username = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("password", account.getPassword());
+        parameterMap.put("username", account.getUsername());
+        updateGenericDAO(sql, parameterMap);
+    }
 }
