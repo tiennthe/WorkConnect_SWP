@@ -111,12 +111,125 @@ public class AuthenticationController extends HttpServlet {
             case "log-out":
                 logOut(request, response);
                 return;
+            case "change-password":
+                url = changePassword(request, response);
+                break;
+            case "deactivate-account":  // Thêm hành động để xóa tài khoản
+                url = deactivateAccount(request, response);
+                break;
             default:
                 response.sendRedirect(request.getContextPath() + "/home");
                 return;
         }
         // Forward to the appropriate page
         request.getRequestDispatcher(url).forward(request, response);
+    }
+    
+    private String deactivateAccount(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Lấy tài khoản từ session
+        HttpSession session = request.getSession();
+        Account account = (Account) session.getAttribute(CommonConst.SESSION_ACCOUNT);
+
+        if (account != null) {
+            // Lấy mật khẩu mà người dùng đã nhập từ request
+            String currentPassword = request.getParameter("currentPassword");
+
+            // Kiểm tra xem mật khẩu nhập vào có trùng với mật khẩu của tài khoản hiện tại không
+            if (account.getPassword().equals(currentPassword)) {  // So sánh mật khẩu đã lưu với mật khẩu nhập vào
+                // Nếu mật khẩu đúng, xóa tài khoản khỏi cơ sở dữ liệu
+                accountDAO.deactiveAccount(account);
+
+                // Chuyển hướng đến trang đăng nhập sau khi vô hiệu hoá thành công
+                request.setAttribute("message", "Your account has deactivated successfully.");
+                return "view/authen/login.jsp";
+            } else {
+                // Nếu mật khẩu không đúng, yêu cầu người dùng nhập lại và lưu trạng thái tab
+                request.setAttribute("error", "Incorrect password. Please try again.");
+                request.setAttribute("activeTab", "#deactivate-account"); // Đặt tab Deactivate là tab đang mở
+
+                if (account.getRoleId() == 3) {
+                    return "view/user/userProfile.jsp"; // Trở lại trang yêu cầu nhập lại mật khẩu
+                }
+                if (account.getRoleId() == 2) {
+                    return "view/recruiter/deactiveAccountRecruiter.jsp"; // Trở lại trang yêu cầu nhập lại mật khẩu
+                }
+            }
+        } else {
+            // Nếu không có tài khoản trong session, quay lại trang chủ
+            return "home";
+        }
+        return null;
+    }
+    
+    private String changePassword(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        String currPass = request.getParameter("currentPassword");
+        String newPass = request.getParameter("newPassword");
+        String retypePass = request.getParameter("retypePassword");
+
+        HttpSession session = request.getSession();
+        Account acc = (Account) session.getAttribute(CommonConst.SESSION_ACCOUNT);
+        String url = null;
+
+        int status = 0;
+
+        if (!currPass.equals(acc.getPassword()) && !newPass.equals(retypePass)) {
+            status = 3;
+        } else if (!currPass.equals(acc.getPassword())) {
+            status = 1;
+        } else if (!newPass.equals(retypePass)) {
+            status = 2;
+        } else if (!valid.checkPassword(newPass)) {
+            status = 4;
+        } else {
+            status = 5;
+        }
+
+        switch (status) {
+            case 1:
+                request.setAttribute("changePWfail", "Incorrect current password.");
+                if (acc.getRoleId() == 2) {
+                    return "view/recruiter/changePW-re.jsp";
+                }
+                if (acc.getRoleId() == 1 || acc.getRoleId() == 3) {
+                    return "view/authen/changePassword.jsp";
+                }
+                break;
+            case 2:
+                request.setAttribute("changePWfail", "New password and retype password do not match.");
+                if (acc.getRoleId() == 2) {
+                    return "view/recruiter/changePW-re.jsp";
+                }
+                if (acc.getRoleId() == 1 || acc.getRoleId() == 3) {
+                    return "view/authen/changePassword.jsp";
+                }
+                break;
+            case 3:
+                request.setAttribute("changePWfail", "Both current password is incorrect and new password does not match.");
+                if (acc.getRoleId() == 2) {
+                    return "view/recruiter/changePW-re.jsp";
+                }
+                if (acc.getRoleId() == 1 || acc.getRoleId() == 3) {
+                    return "view/authen/changePassword.jsp";
+                }
+                break;
+            case 4:
+                request.setAttribute("changePWfail", "The new password must be 8-20 characters long, and include at "
+                        + "least one letter and one special character.");
+                if (acc.getRoleId() == 2) {
+                    return "view/recruiter/changePW-re.jsp";
+                }
+                if (acc.getRoleId() == 1 || acc.getRoleId() == 3) {
+                    return "view/authen/changePassword.jsp";
+                }
+                break;
+            case 5:
+                acc.setPassword(newPass);
+                accountDAO.updatePasswordByUsername(acc);
+                request.setAttribute("changePWsuccess", "Password Changed Successfully. Please Login Again.");
+                url = "view/authen/login.jsp";
+                break;
+        }
+        return url;
     }
 
     private String loginDoPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
