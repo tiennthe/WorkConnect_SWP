@@ -1,16 +1,14 @@
 package controller.admin;
 
 import static constant.CommonConst.RECORD_PER_PAGE;
-
-import java.io.IOException;
-import java.util.List;
-
 import dao.AccountDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 import model.Account;
 import model.PageControl;
 
@@ -119,8 +117,45 @@ public class SeekerAdminController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String action = request.getParameter("action") != null ? request.getParameter("action") : "";
         String url;
+        switch (action) {
+            case "deactive":
+                url = deactive(request);
+                break;
+            case "active":
+                url = active(request);
+                break;
+            case "view-detail":
+                url = viewDetail(request);
+                request.getRequestDispatcher(url).forward(request, response);
+                return;
+
+            default:
+                url = "view/admin/seekerManagement.jsp";
+        }
         response.sendRedirect(url);
+    }
+
+    private String deactive(HttpServletRequest request) {
+        int id = Integer.parseInt(request.getParameter("id-seeker"));
+        Account account = dao.findUserById(id);
+        dao.deactiveAccount(account);
+        return "seekers";
+    }
+
+    private String active(HttpServletRequest request) {
+        int id = Integer.parseInt(request.getParameter("id-seeker"));
+        Account account = dao.findUserById(id);
+        dao.activeAccount(account);
+        return "seekers";
+    }
+
+    private String viewDetail(HttpServletRequest request) {
+        int id = Integer.parseInt(request.getParameter("id-seeker"));
+        Account account = dao.findUserById(id);
+        request.setAttribute("accountView", account);
+        return "view/admin/viewDetailSeeker.jsp";
     }
 
 }
