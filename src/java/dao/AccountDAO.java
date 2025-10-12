@@ -1,5 +1,7 @@
 package dao;
 
+import static constant.CommonConst.RECORD_PER_PAGE;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -158,6 +160,101 @@ public class AccountDAO extends GenericDAO<Account> {
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("password", account.getPassword());
         parameterMap.put("username", account.getUsername());
+        updateGenericDAO(sql, parameterMap);
+    }
+    
+    public int findAllTotalRecord(int roleId) {
+        String sql = "SELECT count(*) FROM [dbo].[Account]\n"
+                + "where roleId = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("roleId", roleId);
+        return findTotalRecordGenericDAO(Account.class, sql, parameterMap);
+    }
+
+    public List<Account> searchUserByName(String searchQuery, int roleId, int page) {
+        String sql = "SELECT * FROM [dbo].[Account] WHERE roleId = ? AND lastName + ' ' +firstName LIKE ? ORDER BY id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("roleId", roleId);
+        parameterMap.put("username", "%" + searchQuery + "%");
+        parameterMap.put("offset", (page - 1) * RECORD_PER_PAGE);
+        parameterMap.put("fetch", RECORD_PER_PAGE);
+        return queryGenericDAO(Account.class, sql, parameterMap);
+    }
+    
+    public int findTotalRecordByName(String searchQuery, int roleId) {
+        String sql = "SELECT count(*) FROM [dbo].[Account] WHERE roleId = ? AND lastName + ' ' +firstName LIKE ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("roleId", roleId);
+        parameterMap.put("username", "%" + searchQuery + "%");
+        return findTotalRecordGenericDAO(Account.class, sql, parameterMap);
+    }
+    
+    public List<Account> searchUserByNameAndStatus(String searchQuery, boolean status, int roleId, int page) {
+        String sql = "SELECT * FROM [dbo].[Account] WHERE roleId = ? AND lastName + ' ' +firstName LIKE ? AND isActive = ? ORDER BY id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("roleId", roleId);
+        parameterMap.put("username", "%" + searchQuery + "%");
+        parameterMap.put("isActive", status);
+        parameterMap.put("offset", (page - 1) * RECORD_PER_PAGE);
+        parameterMap.put("fetch", RECORD_PER_PAGE);
+        return queryGenericDAO(Account.class, sql, parameterMap);
+    }
+
+    public int findTotalRecordByNameAndStatus(String searchQuery, boolean status, int roleId) {
+        String sql = "SELECT count(*) FROM [dbo].[Account] WHERE roleId = ? AND lastName + ' ' +firstName LIKE ? AND isActive = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("roleId", roleId);
+        parameterMap.put("username", "%" + searchQuery + "%");
+        parameterMap.put("isActive", status);
+        return findTotalRecordGenericDAO(Account.class, sql, parameterMap);
+    }
+    
+    public List<Account> filterUserByStatus(boolean status, int roleId, int page) {
+        String sql = "SELECT * FROM [dbo].[Account]\n"
+                + "where isActive = ? and roleId = ?\n"
+                + "order by id\n"
+                + "OFFSET ? rows\n"
+                + "FETCH NEXT ? rows only";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("isActive", status);
+        parameterMap.put("roleId", roleId);
+        parameterMap.put("offset", (page - 1) * RECORD_PER_PAGE);
+        parameterMap.put("fetch", RECORD_PER_PAGE);
+        List<Account> list = queryGenericDAO(Account.class, sql, parameterMap);
+        return list;
+    }
+    
+     public List<Account> findAllUserByRoleId(int roleId, int page) {
+        String sql = """
+                     SELECT * FROM [dbo].[Account]
+                     where roleId = ?
+                     order by id
+                     OFFSET ? rows
+                     FETCH NEXT ? rows only""";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("roleId", roleId);
+        parameterMap.put("offset", (page - 1) * RECORD_PER_PAGE);
+        parameterMap.put("fetch", RECORD_PER_PAGE);
+        List<Account> list = queryGenericDAO(Account.class, sql, parameterMap);
+        return list;
+    }
+     
+     public int findTotalRecordByStatus(boolean status, int roleId) {
+        String sql = "SELECT count(*) FROM [dbo].[Account]\n"
+                + "where isActive = ? and roleId = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("isActive", status);
+        parameterMap.put("roleId", roleId);
+        return findTotalRecordGenericDAO(Account.class, sql, parameterMap);
+    }
+     
+     public void activeAccount(Account account) {
+        String sql = "UPDATE [dbo].[Account]\n"
+                + "   SET [isActive] = ?\n"
+                + " WHERE id = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("isActive", 1);
+        parameterMap.put("id", account.getId());
         updateGenericDAO(sql, parameterMap);
     }
 }

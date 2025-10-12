@@ -431,6 +431,134 @@ public abstract class GenericDAO<T> extends DBContext {
             }
         }
     }
+    
+    /**
+     * Tìm số lượng record của 1 bảng nào đó
+     *
+     * @param clazz: bảng muốn tìm
+     * @return số lượng record
+     */
+    protected int findTotalRecordGenericDAO(Class<T> clazz) {
+        int total = 0;
+        try {
+            // Lấy kết nối
+            connection = new DBContext().connection;
+
+            // Tạo câu lệnh SELECT
+            StringBuilder sqlBuilder = new StringBuilder();
+            sqlBuilder.append("SELECT COUNT(*) FROM ").append(clazz.getSimpleName());
+            //List parameter
+            List<Object> parameters = new ArrayList<>();
+
+            // Chuẩn bị câu lệnh
+            statement = connection.prepareStatement(sqlBuilder.toString());
+
+            // Gán giá trị cho các tham số của câu truy vấn
+            int index = 1;
+            for (Object value : parameters) {
+                statement.setObject(index, value);
+                index++;
+            }
+
+            // Thực thi truy vấn
+            resultSet = statement.executeQuery();
+
+            // Khai báo danh sách kết quả
+            // Duyệt result set   
+            if (resultSet.next()) {
+                total = resultSet.getInt(1);
+            }
+
+        } catch (IllegalArgumentException | SQLException e) {
+            System.err.println("4USER: Bắn Exception ở hàm findTotalRecord: " + e.getMessage());
+        } finally {
+            try {
+                // Đóng kết nối và các tài nguyên
+                if (resultSet != null) {
+
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("4USER: Bắn Exception ở hàm findTotalRecord: " + e.getMessage());
+            }
+        }
+        return total;
+    }
+    
+    /**
+     * Tìm số lượng record của 1 bảng nào đó, điều kiện (optional)
+     *
+     * @param clazz: bảng muốn tìm
+     * @param parameterMap: hashmap chứa các parameter
+     * @return số lượng record
+     */
+    protected int findTotalRecordGenericDAO(Class<T> clazz, String sql, Map<String, Object> parameterMap) {
+        int total = 0;
+        try {
+            // Lấy kết nối
+            connection = new DBContext().connection;
+
+            // Tạo câu lệnh SELECT
+            StringBuilder sqlBuilder = new StringBuilder();
+            sqlBuilder.append("SELECT COUNT(*) FROM ").append(clazz.getSimpleName());
+            //List parameter
+            List<Object> parameters = new ArrayList<>();
+
+            // Thêm điều kiện
+            if (parameterMap != null && !parameterMap.isEmpty()) {
+                // code thêm điều kiện
+                for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
+                    Object conditionValue = entry.getValue();
+
+                    parameters.add(conditionValue);
+                }
+            }
+
+            // Chuẩn bị câu lệnh
+            statement = connection.prepareStatement(sql);
+
+            // Gán giá trị cho các tham số của câu truy vấn
+            int index = 1;
+            for (Object value : parameters) {
+                statement.setObject(index, value);
+                index++;
+            }
+
+            // Thực thi truy vấn
+            resultSet = statement.executeQuery();
+
+            // Khai báo danh sách kết quả
+            // Duyệt result set   
+            if (resultSet.next()) {
+                total = resultSet.getInt(1);
+            }
+
+        } catch (IllegalArgumentException | SQLException e) {
+            System.err.println("4USER: Bắn Exception ở hàm findTotalRecord: " + e.getMessage());
+        } finally {
+            try {
+                // Đóng kết nối và các tài nguyên
+                if (resultSet != null) {
+
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("4USER: Bắn Exception ở hàm findTotalRecord: " + e.getMessage());
+            }
+        }
+        return total;
+    }
+
 
     private static <T> T mapRow(ResultSet rs, Class<T> clazz) throws
             SQLException,
