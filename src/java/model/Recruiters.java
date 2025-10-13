@@ -1,6 +1,6 @@
 package model;
 
-public class Recruiter {
+public class Recruiters {
     private int RecruiterID;
     private boolean isVerify;
     private int AccountID;
@@ -9,10 +9,10 @@ public class Recruiter {
     private String FrontCitizenImage;
     private String BackCitizenImage;
 
-    public Recruiter() {
+    public Recruiters() {
     }
 
-    public Recruiter(int RecruiterID, boolean isVerify, int AccountID, int CompanyID, String Position, String FrontCitizenImage, String BackCitizenImage) {
+    public Recruiters(int RecruiterID, boolean isVerify, int AccountID, int CompanyID, String Position, String FrontCitizenImage, String BackCitizenImage) {
         this.RecruiterID = RecruiterID;
         this.isVerify = isVerify;
         this.AccountID = AccountID;
