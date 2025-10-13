@@ -18,6 +18,11 @@
                 <span class="me-2"><i class="fa-solid fa-users"></i></span> Seeker Management
             </a>
         </li>
+        <li>
+            <a href="${pageContext.request.contextPath}/companies" class="nav-link">
+                <span class="me-2"><i class="fa-solid fa-building"></i></span> Company Management
+            </a>
+        </li>
     </ul>
     <hr class="bg-light">
     <div class="dropdown mt-auto">
