@@ -23,6 +23,10 @@ public abstract class GenericDAO<T> extends DBContext {
     public static final boolean CONDITION_AND = true;
     public static final boolean CONDITION_OR = false;
 
+    public abstract List<T> findAll();
+
+    public abstract int insert(T t);
+    
     /**
      * Hàm này sử dụng để get dữ liệu từ database lên dựa trên tên bảng mà bạn
      * mong muốn.Hàm sẽ mặc định trả về một List có thể có giá trị hoặc List

@@ -9,10 +9,12 @@ import model.Account;
 
 public class AccountDAO extends GenericDAO<Account> {
 
+    @Override
     public List<Account> findAll() {
         return queryGenericDAO(Account.class);
     }
 
+    @Override
     public int insert(Account t) {
         String sql = "INSERT INTO [dbo].[Account]\n"
                 + "           ([username]\n"
