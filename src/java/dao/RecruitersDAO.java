@@ -6,17 +6,17 @@ package dao;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import model.Recruiter;
+import model.Recruiters;
 
-public class RecruiterDAO extends GenericDAO<Recruiter> {
+public class RecruitersDAO extends GenericDAO<Recruiters> {
 
 //    @Override
-    public List<Recruiter> findAll() {
-        return queryGenericDAO(Recruiter.class);
+    public List<Recruiters> findAll() {
+        return queryGenericDAO(Recruiters.class);
     }
 
 //    @Override
-    public int insert(Recruiter t) {
+    public int insert(Recruiters t) {
         String sql = "INSERT INTO [dbo].[Recruiters]\n"
                 + "           ([isVerify]\n"
                 + "           ,[AccountID]\n"
@@ -36,28 +36,28 @@ public class RecruiterDAO extends GenericDAO<Recruiter> {
         return insertGenericDAO(sql, parameterMap);
     }
 
-    public Recruiter findRecruitersbyAccountID(String AccountID) {
+    public Recruiters findRecruitersbyAccountID(String AccountID) {
         String sql = "SELECT * FROM Recruiters WHERE AccountID = ?";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("AccountID", AccountID);
-        List<Recruiter> list = queryGenericDAO(Recruiter.class, sql, parameterMap);
+        List<Recruiters> list = queryGenericDAO(Recruiters.class, sql, parameterMap);
         return list.isEmpty() ? null : list.get(0);
     }
 
-    public List<Recruiter> listRecruiterByRecruiterID(int recruiterID) {
+    public List<Recruiters> listRecruiterByRecruiterID(int recruiterID) {
         String sql = "select * from [dbo].[Recruiters] where RecruiterID = ?";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("RecruiterID", recruiterID);
-        List<Recruiter> list = queryGenericDAO(Recruiter.class, sql, parameterMap);
-        return queryGenericDAO(Recruiter.class, sql, parameterMap);
+        List<Recruiters> list = queryGenericDAO(Recruiters.class, sql, parameterMap);
+        return queryGenericDAO(Recruiters.class, sql, parameterMap);
     }
 
-    public List<Recruiter> listRecruiterByAccountID(int accountID) {
+    public List<Recruiters> listRecruiterByAccountID(int accountID) {
         String sql = "select * from [dbo].[Recruiters] where AccountID = ?";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("AccountID", accountID);
-        List<Recruiter> list = queryGenericDAO(Recruiter.class, sql, parameterMap);
-        return queryGenericDAO(Recruiter.class, sql, parameterMap);
+        List<Recruiters> list = queryGenericDAO(Recruiters.class, sql, parameterMap);
+        return queryGenericDAO(Recruiters.class, sql, parameterMap);
     }
 
     public void updateVerification(String recruiterId, boolean verify) {
@@ -78,14 +78,14 @@ public class RecruiterDAO extends GenericDAO<Recruiter> {
         deleteGenericDAO(sql, parameterMap);
     }
 
-    public Recruiter findById(String recruiterId) {
+    public Recruiters findById(String recruiterId) {
         String sql = "Select * from [dbo].[Recruiters] where RecruiterID = ? ";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("RecruiterID", recruiterId);
-        return queryGenericDAO(Recruiter.class, sql, parameterMap).get(0);
+        return queryGenericDAO(Recruiters.class, sql, parameterMap).get(0);
     }
 
-    public List<Recruiter> searchByName(String searchQuery) {
+    public List<Recruiters> searchByName(String searchQuery) {
         String sql = "select re.*\n"
                 + "	from Recruiters as re\n"
                 + "	, Account as acc\n"
@@ -93,6 +93,6 @@ public class RecruiterDAO extends GenericDAO<Recruiter> {
                 + "	and acc.lastName + ' ' + acc.firstName LIKE ?";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("fullname", "%" + searchQuery + "%");
-        return queryGenericDAO(Recruiter.class, sql, parameterMap);
+        return queryGenericDAO(Recruiters.class, sql, parameterMap);
     }
 }

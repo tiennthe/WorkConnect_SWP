@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import constant.CommonConst;
 import dao.AccountDAO;
+import dao.RecruitersDAO;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -24,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import model.Account;
+import model.Recruiters;
 import utils.Email;
 import validate.Validation;
 
@@ -32,6 +34,7 @@ import validate.Validation;
 public class AuthenticationController extends HttpServlet {
     private final AccountDAO accountDAO = new AccountDAO();
     Validation valid = new Validation();
+    RecruitersDAO reDAO = new RecruitersDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -59,6 +62,12 @@ public class AuthenticationController extends HttpServlet {
                 break;
             case "edit-profile":
                 url = "view/user/editUserProfile.jsp";
+                break;
+            case "change-password-re":
+                url = "view/recruiter/changePW-re.jsp";
+                break;
+            case "edit-recruiter-profile":
+                url = "view/recruiter/editRecruiterProfile.jsp";
                 break;
             default:
                 url = "view/authen/login.jsp";
@@ -287,6 +296,14 @@ public class AuthenticationController extends HttpServlet {
                 case 1: // Admin role
                     url = "dashboard";
                     break;
+                case 2: // Recruiters role;
+                    Recruiters recruiters = reDAO.findRecruitersbyAccountID(String.valueOf(accFound.getId()));
+                    if (recruiters == null) {
+                        // If no recruiter profile is found, redirect to profile creation page
+                        url = "view/recruiter/viewRecruiterProfile.jsp";
+                    }
+                    break;
+
                 case 3: // Job seeker role
                     url = "HomeSeeker";
                     break;
