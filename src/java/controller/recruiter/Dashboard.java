@@ -5,10 +5,10 @@
 package controller.recruiter;
 
 import constant.CommonConst;
+import dao.CompanyDAO;
 import dao.RecruitersDAO;
 import jakarta.servlet.RequestDispatcher;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Account;
+import model.Company;
 import model.Recruiters;
 
 /**
@@ -26,6 +27,7 @@ import model.Recruiters;
 public class Dashboard extends HttpServlet {
 
     RecruitersDAO RecruitersDAO = new RecruitersDAO();
+    CompanyDAO cdao = new CompanyDAO();
     
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -52,6 +54,15 @@ public class Dashboard extends HttpServlet {
         if (recruiters == null) {
             RequestDispatcher dispatcher = request.getRequestDispatcher("/view/recruiter/verifyRecruiter.jsp");
             dispatcher.forward(request, response);
+        }else{
+            Company company = cdao.findCompanyById(recruiters.getCompanyID());
+            if (company == null || !company.isVerificationStatus() || !recruiters.isIsVerify()) {
+                RequestDispatcher dispatcher = request.getRequestDispatcher("/view/recruiter/verifyRecruiter.jsp");
+                dispatcher.forward(request, response);
+            }else{
+                RequestDispatcher dispatcher = request.getRequestDispatcher("/view/recruiter/dashboard.jsp");
+                dispatcher.forward(request, response);
+            }
         }
     }
 }
