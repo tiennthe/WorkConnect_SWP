@@ -13,6 +13,8 @@ import java.util.logging.Logger;
 
 import constant.CommonConst;
 import dao.AccountDAO;
+import dao.CompanyDAO;
+import dao.RecruitersDAO;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -24,6 +26,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import model.Account;
+import model.Company;
+import model.Recruiters;
 import utils.Email;
 import validate.Validation;
 
@@ -32,6 +36,8 @@ import validate.Validation;
 public class AuthenticationController extends HttpServlet {
     private final AccountDAO accountDAO = new AccountDAO();
     Validation valid = new Validation();
+    RecruitersDAO reDAO = new RecruitersDAO();
+    CompanyDAO cdao = new CompanyDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -59,6 +65,12 @@ public class AuthenticationController extends HttpServlet {
                 break;
             case "edit-profile":
                 url = "view/user/editUserProfile.jsp";
+                break;
+            case "change-password-re":
+                url = "view/recruiter/changePW-re.jsp";
+                break;
+            case "edit-recruiter-profile":
+                url = "view/recruiter/editRecruiterProfile.jsp";
                 break;
             default:
                 url = "view/authen/login.jsp";
@@ -287,6 +299,25 @@ public class AuthenticationController extends HttpServlet {
                 case 1: // Admin role
                     url = "dashboard";
                     break;
+                case 2: // Recruiter role;
+                    Recruiters recruiters = reDAO.findRecruitersbyAccountID(String.valueOf(accFound.getId()));
+                    if (recruiters == null) {
+                        // If no recruiter profile is found, redirect to profile creation page
+                        url = "view/recruiter/viewRecruiterProfile.jsp";
+                    } else {
+                        // Fetch the associated company
+                        Company company = cdao.findCompanyById(recruiters.getCompanyID());
+
+                        // Check if company is active and recruiter is verified
+                        if (company == null || !company.isVerificationStatus() || !recruiters.isIsVerify()) {
+                            // Redirect to profile if company is inactive or verification was denied
+                            url = "view/recruiter/viewRecruiterProfile.jsp";
+                        } else {
+                            url = "view/recruiter/dashboard.jsp";
+                        }
+                    }
+                    break;
+
                 case 3: // Job seeker role
                     url = "HomeSeeker";
                     break;

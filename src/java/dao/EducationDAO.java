@@ -15,11 +15,12 @@ import model.Education;
  */
 public class EducationDAO extends GenericDAO<Education> {
 
+    @Override
     public List<Education> findAll() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    // Nhap thong tin Dao tao
+    @Override
     public int insert(Education t) {
         String sql = "INSERT INTO Education(JobSeekerID, Institution, Degree, FieldOfStudy, StartDate, EndDate, DegreeImg) values \n"
                 + "  (?, ?, ?, ?, ?, ?, ?)";

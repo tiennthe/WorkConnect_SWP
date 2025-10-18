@@ -11,10 +11,12 @@ import model.CV;
 
 public class CVDAO extends GenericDAO<CV> {
 
+    @Override
     public List<CV> findAll() {
         return queryGenericDAO(CV.class);
     }
 
+    @Override
     public int insert(CV t) {
         String sql = "insert into CVs (JobSeekerID, FilePath, UploadDate) values (?, ?, ?)";
         parameterMap = new LinkedHashMap<>();
