@@ -155,7 +155,7 @@ public class SeekerAdminController extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id-seeker"));
         Account account = dao.findUserById(id);
         request.setAttribute("accountView", account);
-        return "view/admin/viewDetailSeeker.jsp";
+        return "view/admin/viewDetailUser.jsp";
     }
 
 }
