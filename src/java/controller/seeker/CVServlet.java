@@ -187,28 +187,31 @@ public class CVServlet extends HttpServlet {
         HttpSession session = request.getSession();
         Account account = (Account) session.getAttribute(CommonConst.SESSION_ACCOUNT);
         if (account == null) {
-            url = "view/authen/login.jsp";
+            return "view/authen/login.jsp";
         }
+
         JobSeekers jobSeeker = jobSeekerDAO.findJobSeekerIDByAccountID(account.getId() + "");
-        
         CV existingCV = cvDAO.findCVbyJobSeekerID(jobSeeker.getJobSeekerID());
         if (existingCV == null) {
-            try {
-                url = "cv?error=" + URLEncoder.encode("No CV found. Please upload one first.", "UTF-8");
-            } catch (UnsupportedEncodingException ex) {
-                Logger.getLogger(CVServlet.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            url = "cv?error=" + URLEncoder.encode("No CV found. Please upload one first.", "UTF-8");
+            return url;
         }
 
         try {
             Part part = request.getPart("cvFileU");
             if (part == null || part.getSize() <= 0) {
-                try {
-                    url = "cv?error=" + URLEncoder.encode("No file uploaded. Please select a CV file.", "UTF-8");
-                } catch (UnsupportedEncodingException ex) {
-                    Logger.getLogger(CVServlet.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                url = "cv?error=" + URLEncoder.encode("No file uploaded. Please select a CV file.", "UTF-8");
+                return url;
             }
+
+            //  Validate file type
+            String fileName = part.getSubmittedFileName();
+            if (!fileName.toLowerCase().endsWith(".pdf")) {
+                url = "cv?error=" + URLEncoder.encode("Invalid file type. Please upload a PDF file.", "UTF-8");
+                return url;
+            }
+
+            // Validate file size
             // Kiểm tra kích thước file (ví dụ giới hạn 10MB = 10 * 1024 * 1024 bytes)
             long fileSize = part.getSize();
             long maxSize = 10 * 1024 * 1024; // 10MB
