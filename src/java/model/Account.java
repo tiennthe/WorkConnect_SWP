@@ -19,12 +19,16 @@ public class Account {
     private Date createAt;
     private Date updatedAt;
     private boolean gender;
+    private String province;
+    private String ward;
+    private int provinceId;
+    private int wardId;
 
    
     public Account() {
     }
 
-    public Account(int id, String username, String password, String email, String phone, String firstName, String lastName, Date dob, String address, String avatar, int roleId, boolean isActive, Date createAt, Date updatedAt, boolean gender) {
+    public Account(int id, String username, String password, String email, String phone, String firstName, String lastName, Date dob, String address, String avatar, int roleId, boolean isActive, Date createAt, Date updatedAt, boolean gender, String province, String ward, int provinceId, int wardId) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -40,9 +44,43 @@ public class Account {
         this.createAt = createAt;
         this.updatedAt = updatedAt;
         this.gender = gender;
+        this.province = province;
+        this.ward = ward;
+        this.provinceId = provinceId;
+        this.wardId = wardId;
     }
 
+    public String getWard(){
+        return ward;
+    }
     
+    public String getProvince(){
+        return province;
+    }
+
+    public int getProvinceId() {
+        return provinceId;
+    }
+
+    public int getWardId() {
+        return wardId;
+    }
+
+    public void setProvinceId(int provinceId) {
+        this.provinceId = provinceId;
+    }
+
+    public void setWardId(int wardId) {
+        this.wardId = wardId;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public void setWard(String ward) {
+        this.ward = ward;
+    }
 
     public int getRoleId() {
         return roleId;
