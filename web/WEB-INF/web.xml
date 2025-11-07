@@ -34,6 +34,7 @@
         <url-pattern>/seeker</url-pattern>
         <url-pattern>/ViewDetailApplication</url-pattern>
         <url-pattern>/jobPostingDetail</url-pattern>
+        <url-pattern>/interviewsManagement</url-pattern>
     </filter-mapping>
     <!--end-filter-login-->
     <filter>
@@ -65,6 +66,7 @@
         <url-pattern>/downloadCV</url-pattern>
         <url-pattern>/jobPost</url-pattern>
         <url-pattern>/updateJP</url-pattern>
+        <url-pattern>/interviewsManagement</url-pattern>
         <url-pattern>/verifyRecruiter</url-pattern>
     </filter-mapping>
     <!--end-filter-recruiter-->
@@ -86,6 +88,7 @@
         <url-pattern>/seeker</url-pattern>
         <url-pattern>/ViewDetailApplication</url-pattern>
         <url-pattern>/jobPostingDetail</url-pattern>
+        <url-pattern>/interviews</url-pattern>
     </filter-mapping>
     <!--end-filter-recruiter-->
     <welcome-file-list>

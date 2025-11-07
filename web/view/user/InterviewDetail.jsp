@@ -53,6 +53,7 @@
               <p><strong>Application ID:</strong> ${interview.applicationID}</p>
               <p><strong>Schedule Date:</strong> ${interview.scheduleAt}</p>
               <p><strong>Reason:</strong> <c:out value="${interview.reason != null ? interview.reason : '-'}"/></p>
+              <p><strong>Created By:</strong> <c:out value="${createdByName}"/></p>
               <p>
                 <strong>Status:</strong>
                 <c:choose>
@@ -65,7 +66,7 @@
 
               <div class="mt-3">
                 <a class="btn btn-secondary" href="${pageContext.request.contextPath}/interviews"><i class="fa fa-arrow-left"></i> Back</a>
-                <c:if test="${interview.status != 2 && interview.status != 3}">
+                <c:if test="${interview.status != 2 && interview.status != 3 && interview.createdBy != interview.recruiterID}">
                   <form action="${pageContext.request.contextPath}/interviews" method="post" class="d-inline">
                     <input type="hidden" name="action" value="confirm" />
                     <input type="hidden" name="id" value="${interview.id}" />
@@ -85,7 +86,7 @@
               <c:if test="${empty history}"><div class="text-muted">No history.</div></c:if>
               <c:if test="${not empty history}">
                 <table class="table table-bordered bg-white">
-                  <thead><tr><th>ID</th><th>Schedule</th><th>Status</th></tr></thead>
+                  <thead><tr><th>ID</th><th>Schedule</th><th>Status</th><th>Created By</th></tr></thead>
                   <tbody>
                     <c:forEach var="h" items="${history}">
                       <tr>
@@ -99,6 +100,7 @@
                             <c:when test="${h.status == 3}"><span class="badge bg-danger">Rejected</span></c:when>
                           </c:choose>
                         </td>
+                        <td><c:out value="${createdByNameMap[h.id]}"/></td>
                       </tr>
                     </c:forEach>
                   </tbody>

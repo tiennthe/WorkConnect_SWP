@@ -33,6 +33,8 @@ public class InterviewsServlet extends HttpServlet {
     private final JobSeekerDAO jobSeekerDAO = new JobSeekerDAO();
     private final ApplicationDAO applicationDAO = new ApplicationDAO();
     private final JobPostingsDAO jobPostingsDAO = new JobPostingsDAO();
+    private final dao.RecruitersDAO recruitersDAO2 = new dao.RecruitersDAO();
+    private final dao.AccountDAO accountDAO2 = new dao.AccountDAO();
     private final RecruitersDAO recruitersDAO = new RecruitersDAO();
     private final AccountDAO accountDAO = new AccountDAO();
 
@@ -153,9 +155,35 @@ public class InterviewsServlet extends HttpServlet {
             request.setAttribute("error", request.getParameter("error"));
         }
         List<Interviews> history = interviewsDAO.findHistoryByInterviewId(id);
+        java.util.Map<Integer,String> createdByNameMap = new java.util.HashMap<>();
+        if (interview != null) {
+            createdByNameMap.put(interview.getId(), resolveCreatedByName(interview));
+        }
+        for (Interviews h : history) {
+            createdByNameMap.put(h.getId(), resolveCreatedByName(h));
+        }
         request.setAttribute("interview", interview);
         request.setAttribute("history", history);
+        request.setAttribute("createdByNameMap", createdByNameMap);
+        request.setAttribute("createdByName", createdByNameMap.get(interview.getId()));
         request.getRequestDispatcher("view/user/InterviewDetail.jsp").forward(request, response);
+    }
+
+    private String resolveCreatedByName(Interviews iv) {
+        try {
+            if (iv.getCreatedBy() == iv.getSeekerID()) {
+                model.JobSeekers seeker = jobSeekerDAO.findJobSeekerIDByJobSeekerID(String.valueOf(iv.getSeekerID()));
+                if (seeker != null && seeker.getAccount() != null) return seeker.getAccount().getFullName();
+            }
+            if (iv.getCreatedBy() == iv.getRecruiterID()) {
+                model.Recruiters r = recruitersDAO2.findById(String.valueOf(iv.getRecruiterID()));
+                if (r != null) {
+                    model.Account acc = accountDAO2.findUserById(r.getAccountID());
+                    if (acc != null) return acc.getFullName();
+                }
+            }
+        } catch (Exception ignored) {}
+        return String.valueOf(iv.getCreatedBy());
     }
 
     private void handleConfirm(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -207,6 +235,7 @@ public class InterviewsServlet extends HttpServlet {
         newIv.setReason(reason);
         newIv.setStatus(status); // 1 = Rescheduled
         newIv.setScheduleAt(newDate);
+        newIv.setCreatedBy(current.getSeekerID());
 
         int newId = interviewsDAO.insert(newIv);
         if (newId > 0) {

@@ -91,7 +91,7 @@
                     <i class="fa-solid fa-eye"></i> View
                   </a>
 
-                  <c:if test="${iv.status != 2 && iv.status != 3}">
+                  <c:if test="${iv.status != 2 && iv.status != 3 && iv.createdBy != iv.recruiterID}">
                     <!-- Confirm -->
                     <form action="${pageContext.request.contextPath}/interviews" method="post" class="d-inline">
                       <input type="hidden" name="action" value="confirm" />
