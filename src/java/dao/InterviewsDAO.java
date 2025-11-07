@@ -52,6 +52,49 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
         return queryGenericDAO(Interviews.class, sql, parameterMap);
     }
 
+    public List<Interviews> findBySeekerIdAndStatus(int seekerId, int status) {
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? AND [Status] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("SeekerID", seekerId);
+        parameterMap.put("Status", status);
+        return queryGenericDAO(Interviews.class, sql, parameterMap);
+    }
+
+    // Pagination variants
+    public List<Interviews> findBySeekerId(int seekerId, int page, int pageSize) {
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("SeekerID", seekerId);
+        parameterMap.put("Offset", (page - 1) * pageSize);
+        parameterMap.put("PageSize", pageSize);
+        return queryGenericDAO(Interviews.class, sql, parameterMap);
+    }
+
+    public List<Interviews> findBySeekerIdAndStatus(int seekerId, int status, int page, int pageSize) {
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? AND [Status] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("SeekerID", seekerId);
+        parameterMap.put("Status", status);
+        parameterMap.put("Offset", (page - 1) * pageSize);
+        parameterMap.put("PageSize", pageSize);
+        return queryGenericDAO(Interviews.class, sql, parameterMap);
+    }
+
+    public int countBySeekerId(int seekerId) {
+        String sql = "SELECT COUNT(*) FROM [dbo].[Interviews] WHERE [SeekerID] = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("SeekerID", seekerId);
+        return countGenericDAO(sql, parameterMap);
+    }
+
+    public int countBySeekerIdAndStatus(int seekerId, int status) {
+        String sql = "SELECT COUNT(*) FROM [dbo].[Interviews] WHERE [SeekerID] = ? AND [Status] = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("SeekerID", seekerId);
+        parameterMap.put("Status", status);
+        return countGenericDAO(sql, parameterMap);
+    }
+
     public List<Interviews> findHistoryByInterviewId(int interviewId) {
         Integer appId = getApplicationIdByInterviewId(interviewId);
         if (appId == null) return java.util.Collections.emptyList();

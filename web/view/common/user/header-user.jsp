@@ -70,6 +70,8 @@
                                 <i class="fa-solid fa-briefcase me-2"></i> Manage your Experience</a></li>
                             <li><a class="dropdown-item text-dark" href="${pageContext.request.contextPath}/application">
                                 <i class="fa-solid fa-bell me-2"></i> My Applications</a></li>
+                            <li><a class="dropdown-item text-dark" href="${pageContext.request.contextPath}/interviews">
+                                <i class="fa-solid fa-calendar me-2"></i> My Interviews</a></li>
                             <li><a class="dropdown-item text-dark" href="${pageContext.request.contextPath}/feedbackSeeker">
                                 <i class="fa-solid fa-briefcase me-2"></i> Your Feedback</a></li>
                             <li><a class="dropdown-item text-dark" href="${pageContext.request.contextPath}/authen?action=change-password">
