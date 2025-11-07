@@ -336,12 +336,17 @@
                             <div class="modal-body">
                                 <form id="changeStatusForm" action="${pageContext.request.contextPath}/applicationSeekers" method="post">
                                     <input type="hidden" name="applicationId" id="applicationId" value="">
+                                    <input type="hidden" name="jobPostId" value="${param.jobPostId}">
                                     <div class="mb-3">
                                         <label for="status" class="form-label">Select New Status:</label>
                                         <select class="form-select" id="status" name="status" required>
                                             <option value="2">Agree</option>
                                             <option value="1">Reject</option>
                                         </select>
+                                    </div>
+                                    <div class="mb-3" id="scheduleGroup" style="display:none;">
+                                        <label for="scheduleAt" class="form-label">Schedule Date & Time:</label>
+                                        <input type="datetime-local" class="form-control" id="scheduleAt" name="scheduleAt" />
                                     </div>
                                     <div class="mb-3">
                                         <label for="emailContent" class="form-label">Email Content:</label>
@@ -365,6 +370,8 @@
         <script>
                                         function openModal(applicationId) {
                                             document.getElementById("applicationId").value = applicationId;
+                                            // Ensure schedule visibility matches current status when opening
+                                            toggleSchedule();
                                         }
         </script>
         <!-- TinyMCE và mã JavaScript cho nút Reset -->
@@ -391,8 +398,38 @@
 
                                             // Reset các trường khác trong form nếu cần
                                             document.getElementById('status').selectedIndex = 0; // Đặt lại giá trị đầu tiên của dropdown
+                                            document.getElementById('scheduleAt').value = '';
+                                            const scheduleGroup = document.getElementById('scheduleGroup');
+                                            const scheduleAt = document.getElementById('scheduleAt');
+                                            scheduleAt.required = false;
+                                            scheduleGroup.style.display = 'none';
                                             document.getElementById('changeStatusForm').reset(); // Reset form nếu cần
                                         }
+
+                                        // Hiển thị/ẩn lịch hẹn theo trạng thái
+                                        function toggleSchedule() {
+                                            const statusEl = document.getElementById('status');
+                                            const scheduleGroup = document.getElementById('scheduleGroup');
+                                            const scheduleAt = document.getElementById('scheduleAt');
+                                            if (statusEl && statusEl.value === '2') {
+                                                scheduleGroup.style.display = '';
+                                                scheduleAt.required = true;
+                                            } else {
+                                                scheduleGroup.style.display = 'none';
+                                                scheduleAt.required = false;
+                                                scheduleAt.value = '';
+                                            }
+                                        }
+
+                                        // Lắng nghe thay đổi của dropdown trạng thái
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            const statusEl = document.getElementById('status');
+                                            if (statusEl) {
+                                                statusEl.addEventListener('change', toggleSchedule);
+                                                // Initialize on load
+                                                toggleSchedule();
+                                            }
+                                        });
         </script>
     </body>
 </html>

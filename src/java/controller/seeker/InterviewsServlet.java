@@ -6,6 +6,8 @@ import dao.ApplicationDAO;
 import dao.InterviewsDAO;
 import dao.JobPostingsDAO;
 import dao.JobSeekerDAO;
+import dao.RecruitersDAO;
+import dao.AccountDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,12 +16,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.List;
 import model.Account;
 import model.Interviews;
 import model.Applications;
 import model.JobPostings;
 import model.JobSeekers;
+import model.Recruiters;
+import utils.Email;
 
 @WebServlet(name = "InterviewsServlet", urlPatterns = {"/interviews"})
 public class InterviewsServlet extends HttpServlet {
@@ -28,6 +33,8 @@ public class InterviewsServlet extends HttpServlet {
     private final JobSeekerDAO jobSeekerDAO = new JobSeekerDAO();
     private final ApplicationDAO applicationDAO = new ApplicationDAO();
     private final JobPostingsDAO jobPostingsDAO = new JobPostingsDAO();
+    private final RecruitersDAO recruitersDAO = new RecruitersDAO();
+    private final AccountDAO accountDAO = new AccountDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -162,20 +169,29 @@ public class InterviewsServlet extends HttpServlet {
         }
 
         boolean ok = interviewsDAO.updateStatus(interviewId, status);
+        if (ok) {
+            notifyRecruiter(request, interviewId, "confirmed", null, null);
+        }
         response.sendRedirect("interviews?action=details&id=" + interviewId + (ok ? "&success=confirmed" : "&error=update"));
     }
 
     private void handleReschedule(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int interviewId = Integer.parseInt(request.getParameter("id"));
         int status = Integer.parseInt(request.getParameter("status"));
-        Date newDate = Date.valueOf(request.getParameter("scheduleAt"));
+        String dateStr = request.getParameter("scheduleAt");
+        String reason = request.getParameter("reason");
+        // Existing UI uses <input type="date">; set time to 00:00:00
+        Timestamp newDate = Timestamp.valueOf(dateStr + " 00:00:00");
 
         if (!ownsInterview(request.getSession(), interviewId)) {
             response.sendRedirect("interviews?error=unauthorized");
             return;
         }
 
-        boolean ok = interviewsDAO.updateScheduleAndStatus(interviewId, newDate, status);
+        boolean ok = interviewsDAO.updateScheduleStatusAndReason(interviewId, newDate, status, reason);
+        if (ok) {
+            notifyRecruiter(request, interviewId, "rescheduled", newDate, reason);
+        }
         response.sendRedirect("interviews?action=details&id=" + interviewId + (ok ? "&success=rescheduled" : "&error=update"));
     }
 
@@ -190,7 +206,49 @@ public class InterviewsServlet extends HttpServlet {
         }
 
         boolean ok = interviewsDAO.rejectWithReason(interviewId, reason, status);
+        if (ok) {
+            notifyRecruiter(request, interviewId, "rejected", null, reason);
+        }
         response.sendRedirect("interviews?action=details&id=" + interviewId + (ok ? "&success=rejected" : "&error=update"));
+    }
+
+    private void notifyRecruiter(HttpServletRequest request, int interviewId, String action, java.sql.Timestamp scheduleAt, String reason) {
+        try {
+            Interviews iv = interviewsDAO.findById(interviewId);
+            if (iv == null) return;
+            Applications app = applicationDAO.getDetailApplication(iv.getApplicationID());
+            if (app == null) return;
+            JobPostings jp = jobPostingsDAO.findJobPostingById(app.getJobPostingID());
+            if (jp == null) return;
+            Recruiters re = recruitersDAO.findById(String.valueOf(jp.getRecruiterID()));
+            if (re == null) return;
+            model.Account recruiterAcc = accountDAO.findUserById(re.getAccountID());
+            if (recruiterAcc == null || recruiterAcc.getEmail() == null || recruiterAcc.getEmail().isEmpty()) return;
+
+            String subject = "Interview " + action + " by candidate";
+            StringBuilder body = new StringBuilder();
+            body.append("Dear Recruiter,<br><br>");
+            body.append("The candidate has ").append(action).append(" an interview for Application ID ").append(app.getApplicationID()).append(".<br>");
+            if (scheduleAt != null) {
+                body.append("New schedule: ").append(scheduleAt.toString()).append("<br>");
+            }
+            if (reason != null && !reason.trim().isEmpty()) {
+                body.append("Reason: ").append(escapeHtml(reason)).append("<br>");
+            }
+            String baseUrl = request.getScheme() + "://" + request.getServerName()
+                    + ((request.getServerPort() == 80 || request.getServerPort() == 443) ? "" : ":" + request.getServerPort())
+                    + request.getContextPath();
+            String link = baseUrl + "/applicationSeekers?jobPostId=" + app.getJobPostingID();
+            body.append("<br><a href=\"").append(link).append("\">View Applications</a>");
+            body.append("<br><br>Best regards,");
+
+            new Email().sendEmail(recruiterAcc.getEmail(), subject, body.toString());
+        } catch (Exception ignore) {
+        }
+    }
+
+    private String escapeHtml(String s) {
+        return s == null ? null : s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private boolean ownsInterview(HttpSession session, int interviewId) {

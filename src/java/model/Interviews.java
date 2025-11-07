@@ -1,6 +1,6 @@
 package model;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 
 public class Interviews {
 
@@ -10,12 +10,12 @@ public class Interviews {
     private int SeekerID;
     private String Reason; 
     private int Status; // 0: Pending, 1: Rescheduled, 2: Confirmed, 3: Rejected
-    private Date ScheduleAt;
+    private Timestamp ScheduleAt;
 
     public Interviews() {
     }
 
-    public Interviews(int Id, int ApplicationID, int RecruiterID, int SeekerID, String Reason, int Status, Date ScheduleAt) {
+    public Interviews(int Id, int ApplicationID, int RecruiterID, int SeekerID, String Reason, int Status, Timestamp ScheduleAt) {
         this.Id = Id;
         this.ApplicationID = ApplicationID;
         this.RecruiterID = RecruiterID;
@@ -73,12 +73,11 @@ public class Interviews {
         this.Status = Status;
     }
 
-    public Date getScheduleAt() {
+    public Timestamp getScheduleAt() {
         return ScheduleAt;
     }
 
-    public void setScheduleAt(Date ScheduleAt) {
+    public void setScheduleAt(Timestamp ScheduleAt) {
         this.ScheduleAt = ScheduleAt;
     }
 }
-

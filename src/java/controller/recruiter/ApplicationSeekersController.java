@@ -9,6 +9,7 @@ import dao.ApplicationDAO;
 import dao.CVDAO;
 import dao.EducationDAO;
 import dao.JobPostingsDAO;
+import dao.InterviewsDAO;
 import dao.WorkExperienceDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,11 +19,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.sql.Date;
+import java.sql.Timestamp;
 import model.Account;
 import model.Applications;
 import model.CV;
 import model.Education;
 import model.WorkExperience;
+import model.Interviews;
 import utils.Email;
 
 
@@ -197,6 +201,18 @@ public class ApplicationSeekersController extends HttpServlet {
         try {
             int applicationId = Integer.parseInt(request.getParameter("applicationId"));
             int status = Integer.parseInt(request.getParameter("status"));
+            String scheduleRaw = request.getParameter("scheduleAt");
+            Timestamp scheduleDate = null;
+            if (status == 2) {
+                if (scheduleRaw == null || scheduleRaw.trim().isEmpty()) {
+                    response.sendRedirect(request.getContextPath() + "/applicationSeekers?error=scheduleRequired&jobPostId=" + request.getParameter("jobPostId"));
+                    return;
+                }
+                // Expect yyyy-MM-ddTHH:mm from datetime-local; normalize to yyyy-MM-dd HH:mm:ss
+                String ts = scheduleRaw.replace('T', ' ');
+                if (ts.length() == 16) ts = ts + ":00";
+                scheduleDate = Timestamp.valueOf(ts);
+            }
             String emailContent = request.getParameter("emailContent"); // Nội dung tùy chỉnh từ người dùng
 
             // Cập nhật trạng thái của đơn xin việc trong cơ sở dữ liệu
@@ -216,6 +232,29 @@ public class ApplicationSeekersController extends HttpServlet {
             String rejectContent = "We regret to inform you that after careful consideration, we have decided not to move forward with your application. "
                     + "We appreciate the time you invested in your application. Please feel free to apply again in the future.<br><br>";
 
+            // Create interview when status is Agree (2)
+            Integer createdInterviewId = null;
+            if (status == 2) {
+                try {
+                    dao.JobPostingsDAO jpDao = new dao.JobPostingsDAO();
+                    dao.InterviewsDAO ivDao = new dao.InterviewsDAO();
+                    int seekerId = application.getJobSeekerID();
+                    int recruiterId = jpDao.findJobPostingById(application.getJobPostingID()).getRecruiterID();
+
+                    model.Interviews interview = new model.Interviews();
+                    interview.setApplicationID(applicationId);
+                    interview.setRecruiterID(recruiterId);
+                    interview.setSeekerID(seekerId);
+                    interview.setReason(null);
+                    interview.setStatus(0); // Pending
+                    interview.setScheduleAt(scheduleDate);
+
+                    createdInterviewId = ivDao.insert(interview);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+
             // Chọn nội dung mẫu dựa trên status (trúng tuyển hay bị từ chối)
             String emailBody;
             if (status == 2) { // Giả sử 2 là trúng tuyển
@@ -227,6 +266,20 @@ public class ApplicationSeekersController extends HttpServlet {
             }
 
             // Gửi email nếu có email của ứng viên
+            // Append schedule info and interview link when Agree
+            if (status == 2) {
+                String scheduleDisplay = (scheduleRaw != null) ? scheduleRaw.replace('T', ' ') : (scheduleDate != null ? scheduleDate.toString() : "");
+                String baseUrl = request.getScheme() + "://" + request.getServerName()
+                        + ((request.getServerPort() == 80 || request.getServerPort() == 443) ? "" : ":" + request.getServerPort())
+                        + request.getContextPath();
+                String interviewLink = (createdInterviewId != null)
+                        ? (baseUrl + "/interviews?action=details&id=" + createdInterviewId)
+                        : "";
+                String scheduleInfo = "<br><strong>Schedule:</strong> " + scheduleDisplay + "<br>";
+                String linkInfo = (createdInterviewId != null) ? ("<br><a href=\"" + interviewLink + "\">View Interview Details</a>") : "";
+                emailBody = emailBody.replace(footer, scheduleInfo + linkInfo + footer);
+            }
+
             Email email = new Email();
             if (applicantEmail != null && !applicantEmail.isEmpty()) {
                 try {

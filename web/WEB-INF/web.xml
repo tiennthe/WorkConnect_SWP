@@ -22,6 +22,7 @@
         <url-pattern>/jobPost</url-pattern>
         <url-pattern>/verifyRecruiter</url-pattern>
         <url-pattern>/application</url-pattern>
+        <url-pattern>/interviews</url-pattern>
         <url-pattern>/cv</url-pattern>
         <url-pattern>/education</url-pattern>
         <url-pattern>/experience</url-pattern>
