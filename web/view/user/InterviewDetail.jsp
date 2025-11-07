@@ -24,7 +24,20 @@
         <div class="alert alert-danger">${error}</div>
       </c:if>
       <c:if test="${not empty success}">
-        <div class="alert alert-success">${success}</div>
+        <c:choose>
+          <c:when test="${success eq 'confirmed'}">
+            <div class="alert alert-success">Interview confirmed successfully.</div>
+          </c:when>
+          <c:when test="${success eq 'rescheduled'}">
+            <div class="alert alert-success">Interview rescheduled successfully.</div>
+          </c:when>
+          <c:when test="${success eq 'rejected'}">
+            <div class="alert alert-success">Interview rejected successfully.</div>
+          </c:when>
+          <c:otherwise>
+            <div class="alert alert-success">${success}</div>
+          </c:otherwise>
+        </c:choose>
       </c:if>
 
       <c:if test="${empty interview}">
@@ -108,8 +121,8 @@
           <form action="${pageContext.request.contextPath}/interviews" method="post">
             <div class="modal-body">
               <div class="mb-3">
-                <label class="form-label">New date</label>
-                <input type="date" name="scheduleAt" class="form-control" required />
+                <label class="form-label">New date & time</label>
+                <input type="datetime-local" name="scheduleAt" class="form-control" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">Reason</label>

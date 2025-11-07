@@ -180,19 +180,43 @@ public class InterviewsServlet extends HttpServlet {
         int status = Integer.parseInt(request.getParameter("status"));
         String dateStr = request.getParameter("scheduleAt");
         String reason = request.getParameter("reason");
-        // Existing UI uses <input type="date">; set time to 00:00:00
-        Timestamp newDate = Timestamp.valueOf(dateStr + " 00:00:00");
+        // Parse from datetime-local: yyyy-MM-ddTHH:mm
+        String ts = dateStr != null ? dateStr.replace('T', ' ') : null;
+        if (ts == null || ts.isEmpty()) {
+            response.sendRedirect("interviews?action=details&id=" + interviewId + "&error=invalidDate");
+            return;
+        }
+        if (ts.length() == 16) ts = ts + ":00"; // add seconds if missing
+        Timestamp newDate = Timestamp.valueOf(ts);
 
         if (!ownsInterview(request.getSession(), interviewId)) {
             response.sendRedirect("interviews?error=unauthorized");
             return;
         }
 
-        boolean ok = interviewsDAO.updateScheduleStatusAndReason(interviewId, newDate, status, reason);
-        if (ok) {
-            notifyRecruiter(request, interviewId, "rescheduled", newDate, reason);
+        // Create a new interview entry instead of updating the current one
+        Interviews current = interviewsDAO.findById(interviewId);
+        if (current == null) {
+            response.sendRedirect("interviews?error=notfound");
+            return;
         }
-        response.sendRedirect("interviews?action=details&id=" + interviewId + (ok ? "&success=rescheduled" : "&error=update"));
+        Interviews newIv = new Interviews();
+        newIv.setApplicationID(current.getApplicationID());
+        newIv.setRecruiterID(current.getRecruiterID());
+        newIv.setSeekerID(current.getSeekerID());
+        newIv.setReason(reason);
+        newIv.setStatus(status); // 1 = Rescheduled
+        newIv.setScheduleAt(newDate);
+
+        int newId = interviewsDAO.insert(newIv);
+        if (newId > 0) {
+            // Keep application status in sync (5 used elsewhere for reschedule)
+            applicationDAO.ChangeStatusApplication(current.getApplicationID(), 5);
+            notifyRecruiter(request, newId, "rescheduled", newDate, reason);
+            response.sendRedirect("interviews?action=details&id=" + newId + "&success=rescheduled");
+        } else {
+            response.sendRedirect("interviews?action=details&id=" + interviewId + "&error=create");
+        }
     }
 
     private void handleReject(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -228,7 +252,8 @@ public class InterviewsServlet extends HttpServlet {
             String subject = "Interview " + action + " by candidate";
             StringBuilder body = new StringBuilder();
             body.append("Dear Recruiter,<br><br>");
-            body.append("The candidate has ").append(action).append(" an interview for Application ID ").append(app.getApplicationID()).append(".<br>");
+            String applicationName = (jp != null && jp.getTitle() != null) ? jp.getTitle() : ("Application #" + app.getApplicationID());
+            body.append("The candidate has ").append(action).append(" an interview for ").append(escapeHtml(applicationName)).append(".<br>");
             if (scheduleAt != null) {
                 body.append("New schedule: ").append(scheduleAt.toString()).append("<br>");
             }
