@@ -1,7 +1,10 @@
 package controller.seeker;
 
 import constant.CommonConst;
+import constant.InterviewConst;
+import dao.ApplicationDAO;
 import dao.InterviewsDAO;
+import dao.JobPostingsDAO;
 import dao.JobSeekerDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,6 +17,8 @@ import java.sql.Date;
 import java.util.List;
 import model.Account;
 import model.Interviews;
+import model.Applications;
+import model.JobPostings;
 import model.JobSeekers;
 
 @WebServlet(name = "InterviewsServlet", urlPatterns = {"/interviews"})
@@ -21,6 +26,8 @@ public class InterviewsServlet extends HttpServlet {
 
     private final InterviewsDAO interviewsDAO = new InterviewsDAO();
     private final JobSeekerDAO jobSeekerDAO = new JobSeekerDAO();
+    private final ApplicationDAO applicationDAO = new ApplicationDAO();
+    private final JobPostingsDAO jobPostingsDAO = new JobPostingsDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -75,8 +82,47 @@ public class InterviewsServlet extends HttpServlet {
             return;
         }
 
-        List<Interviews> list = interviewsDAO.findBySeekerId(seeker.getJobSeekerID());
+        String statusParam = request.getParameter("status");
+        if (request.getParameter("success") != null) {
+            request.setAttribute("success", request.getParameter("success"));
+        }
+        if (request.getParameter("error") != null) {
+            request.setAttribute("error", request.getParameter("error"));
+        }
+        int page = parsePage(request);
+        int pageSize = CommonConst.RECORD_PER_PAGE;
+
+        List<Interviews> list;
+        int totalRecords;
+        if (statusParam != null && !statusParam.isEmpty()) {
+            try {
+                int status = Integer.parseInt(statusParam);
+                list = interviewsDAO.findBySeekerIdAndStatus(seeker.getJobSeekerID(), status, page, pageSize);
+                totalRecords = interviewsDAO.countBySeekerIdAndStatus(seeker.getJobSeekerID(), status);
+                request.setAttribute("selectedStatus", statusParam);
+            } catch (NumberFormatException ex) {
+                list = interviewsDAO.findBySeekerId(seeker.getJobSeekerID(), page, pageSize);
+                totalRecords = interviewsDAO.countBySeekerId(seeker.getJobSeekerID());
+            }
+        } else {
+            list = interviewsDAO.findBySeekerId(seeker.getJobSeekerID(), page, pageSize);
+            totalRecords = interviewsDAO.countBySeekerId(seeker.getJobSeekerID());
+        }
+
+        java.util.Map<Integer, String> jobPostingMap = new java.util.HashMap<>();
+        for (Interviews iv : list) {
+            Applications app = applicationDAO.getDetailApplication(iv.getApplicationID());
+            if (app != null) {
+                JobPostings jp = jobPostingsDAO.findJobPostingById(app.getJobPostingID());
+                if (jp != null) jobPostingMap.put(iv.getId(), jp.getTitle());
+            }
+        }
+
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
         request.setAttribute("interviews", list);
+        request.setAttribute("jobPostingMap", jobPostingMap);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("currentPage", page);
         request.getRequestDispatcher("view/user/Interviews.jsp").forward(request, response);
     }
 
@@ -92,6 +138,12 @@ public class InterviewsServlet extends HttpServlet {
         if (interview == null) {
             response.sendRedirect("interviews");
             return;
+        }
+        if (request.getParameter("success") != null) {
+            request.setAttribute("success", request.getParameter("success"));
+        }
+        if (request.getParameter("error") != null) {
+            request.setAttribute("error", request.getParameter("error"));
         }
         List<Interviews> history = interviewsDAO.findHistoryByInterviewId(id);
         request.setAttribute("interview", interview);
@@ -149,5 +201,12 @@ public class InterviewsServlet extends HttpServlet {
         Interviews it = interviewsDAO.findById(interviewId);
         return it != null && it.getSeekerID() == seeker.getJobSeekerID();
     }
-}
 
+    private int parsePage(HttpServletRequest request) {
+        try {
+            return Integer.parseInt(request.getParameter("page"));
+        } catch (NumberFormatException e) {
+            return 1;
+        }
+    }
+}
