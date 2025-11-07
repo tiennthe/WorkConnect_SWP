@@ -95,6 +95,61 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
         return countGenericDAO(sql, parameterMap);
     }
 
+    // Latest-only (group by ApplicationID, RecruiterID, SeekerID) for seeker
+    public List<Interviews> findLatestBySeekerId(int seekerId, int page, int pageSize) {
+        String sql = "WITH iv AS (\n" +
+                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  FROM [dbo].[Interviews]\n" +
+                "  WHERE SeekerID = ?\n" +
+                ")\n" +
+                "SELECT * FROM iv WHERE rn = 1\n" +
+                "ORDER BY ScheduleAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("SeekerID", seekerId);
+        parameterMap.put("Offset", (page - 1) * pageSize);
+        parameterMap.put("PageSize", pageSize);
+        return queryGenericDAO(Interviews.class, sql, parameterMap);
+    }
+
+    public List<Interviews> findLatestBySeekerIdAndStatus(int seekerId, int status, int page, int pageSize) {
+        String sql = "WITH iv AS (\n" +
+                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  FROM [dbo].[Interviews]\n" +
+                "  WHERE SeekerID = ? AND Status = ?\n" +
+                ")\n" +
+                "SELECT * FROM iv WHERE rn = 1\n" +
+                "ORDER BY ScheduleAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("SeekerID", seekerId);
+        parameterMap.put("Status", status);
+        parameterMap.put("Offset", (page - 1) * pageSize);
+        parameterMap.put("PageSize", pageSize);
+        return queryGenericDAO(Interviews.class, sql, parameterMap);
+    }
+
+    public int countLatestBySeekerId(int seekerId) {
+        String sql = "WITH iv AS (\n" +
+                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  FROM [dbo].[Interviews]\n" +
+                "  WHERE SeekerID = ?\n" +
+                ") SELECT COUNT(*) FROM iv WHERE rn = 1";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("SeekerID", seekerId);
+        return countGenericDAO(sql, parameterMap);
+    }
+
+    public int countLatestBySeekerIdAndStatus(int seekerId, int status) {
+        String sql = "WITH iv AS (\n" +
+                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  FROM [dbo].[Interviews]\n" +
+                "  WHERE SeekerID = ? AND Status = ?\n" +
+                ") SELECT COUNT(*) FROM iv WHERE rn = 1";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("SeekerID", seekerId);
+        parameterMap.put("Status", status);
+        return countGenericDAO(sql, parameterMap);
+    }
+
     public List<Interviews> findByRecruiterId(int recruiterId, int page, int pageSize) {
         String sql = "SELECT * FROM [dbo].[Interviews] WHERE [RecruiterID] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         parameterMap = new LinkedHashMap<>();
