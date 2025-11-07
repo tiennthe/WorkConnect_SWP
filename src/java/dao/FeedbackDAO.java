@@ -62,7 +62,7 @@ public class FeedbackDAO extends GenericDAO<Feedback> {
     public List<Feedback> findAllGroupByName(int page) {
         String sql = """
                      SELECT *
-                       FROM [JobSeeker].[dbo].[Feedback]
+                       FROM [dbo].[Feedback]
                        order by AccountID
                        offset ? rows
                        fetch next ? rows only""";
@@ -139,7 +139,7 @@ public class FeedbackDAO extends GenericDAO<Feedback> {
     public List<Feedback> filterFeedbackByStatus(int status, int page) {
         String sql = """
                      SELECT *
-                       FROM [JobSeeker].[dbo].[Feedback]
+                       FROM [dbo].[Feedback]
                        where Status = ?
                        order by FeedbackID
                        offset ? rows

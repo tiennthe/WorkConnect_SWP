@@ -38,7 +38,7 @@ public class CompanyDAO extends GenericDAO<Company> {
 
     public List<Company> filterCompanyByStatus(boolean status, int page) {
         String sql = "SELECT *\n"
-                + "  FROM [JobSeeker].[dbo].[Company]\n"
+                + "  FROM [dbo].[Company]\n"
                 + "  where verificationStatus = ?\n"
                 + "  order by id\n"
                 + "  offset ? rows\n"
@@ -128,7 +128,7 @@ public class CompanyDAO extends GenericDAO<Company> {
 
     public List<Company> findAllCompany(int page) {
         String sql = "SELECT *\n"
-                + "  FROM [JobSeeker].[dbo].[Company]\n"
+                + "  FROM [dbo].[Company]\n"
                 + "  order by id\n"
                 + "  offset ? rows\n"
                 + "  fetch next ? rows only";
