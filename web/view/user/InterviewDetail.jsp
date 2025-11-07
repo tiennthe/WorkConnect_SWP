@@ -110,10 +110,14 @@
               <div class="mb-3">
                 <label class="form-label">New date</label>
                 <input type="date" name="scheduleAt" class="form-control" required />
-                <input type="hidden" name="action" value="reschedule" />
-                <input type="hidden" name="id" value="${interview.id}" />
-                <input type="hidden" name="status" value="1" />
               </div>
+              <div class="mb-3">
+                <label class="form-label">Reason</label>
+                <textarea name="reason" class="form-control" rows="4" placeholder="Explain the reason for rescheduling" required></textarea>
+              </div>
+              <input type="hidden" name="action" value="reschedule" />
+              <input type="hidden" name="id" value="${interview.id}" />
+              <input type="hidden" name="status" value="1" />
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import model.Interviews;
-import java.sql.Date;
+import java.sql.Timestamp;
 
 public class InterviewsDAO extends GenericDAO<Interviews> {
 
@@ -140,11 +140,27 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
         return ids.isEmpty() ? null : ids.get(0);
     }
 
-    public boolean updateScheduleAndStatus(int interviewId, Date newScheduleAt, int interviewStatus) {
+    public boolean updateScheduleAndStatus(int interviewId, Timestamp newScheduleAt, int interviewStatus) {
         String sql = "UPDATE [dbo].[Interviews] SET [ScheduleAt] = ?, [Status] = ? WHERE [Id] = ?";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("ScheduleAt", newScheduleAt);
         parameterMap.put("Status", interviewStatus);
+        parameterMap.put("Id", interviewId);
+        boolean ok = updateGenericDAO(sql, parameterMap);
+
+        Integer appId = getApplicationIdByInterviewId(interviewId);
+        if (ok && appId != null) {
+            new ApplicationDAO().ChangeStatusApplication(appId, 5);
+        }
+        return ok;
+    }
+
+    public boolean updateScheduleStatusAndReason(int interviewId, Timestamp newScheduleAt, int interviewStatus, String reason) {
+        String sql = "UPDATE [dbo].[Interviews] SET [ScheduleAt] = ?, [Status] = ?, [Reason] = ? WHERE [Id] = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("ScheduleAt", newScheduleAt);
+        parameterMap.put("Status", interviewStatus);
+        parameterMap.put("Reason", reason);
         parameterMap.put("Id", interviewId);
         boolean ok = updateGenericDAO(sql, parameterMap);
 
