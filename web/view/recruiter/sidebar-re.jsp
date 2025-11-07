@@ -1,5 +1,4 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ page contentType="text/html" pageEncoding="UTF-8"%>
 
 <!-- Sidebar -->
 <div class="sidebar">
@@ -25,6 +24,9 @@
     </a>
     <a href="${pageContext.request.contextPath}/jobPost">
         <i class="fa-solid fa-list"></i> Job Posting
+    </a>
+    <a href="${pageContext.request.contextPath}/interviewsManagement">
+        <i class="fa-solid fa-calendar"></i> Interviews
     </a>
     <a href="${pageContext.request.contextPath}/company?action=create">
         <i class="fa-solid fa-building me"></i> Create Company

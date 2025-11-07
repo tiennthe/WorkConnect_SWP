@@ -11,11 +11,12 @@ public class Interviews {
     private String Reason; 
     private int Status; // 0: Pending, 1: Rescheduled, 2: Confirmed, 3: Rejected
     private Timestamp ScheduleAt;
+    private int CreatedBy; // recruiterId or seekerId
 
     public Interviews() {
     }
 
-    public Interviews(int Id, int ApplicationID, int RecruiterID, int SeekerID, String Reason, int Status, Timestamp ScheduleAt) {
+    public Interviews(int Id, int ApplicationID, int RecruiterID, int SeekerID, String Reason, int Status, Timestamp ScheduleAt, int CreatedBy) {
         this.Id = Id;
         this.ApplicationID = ApplicationID;
         this.RecruiterID = RecruiterID;
@@ -23,6 +24,7 @@ public class Interviews {
         this.Reason = Reason;
         this.Status = Status;
         this.ScheduleAt = ScheduleAt;
+        this.CreatedBy = CreatedBy;
     }
 
     public int getId() {
@@ -79,5 +81,13 @@ public class Interviews {
 
     public void setScheduleAt(Timestamp ScheduleAt) {
         this.ScheduleAt = ScheduleAt;
+    }
+
+    public int getCreatedBy() {
+        return CreatedBy;
+    }
+
+    public void setCreatedBy(int CreatedBy) {
+        this.CreatedBy = CreatedBy;
     }
 }

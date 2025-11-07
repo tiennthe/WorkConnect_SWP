@@ -248,6 +248,7 @@ public class ApplicationSeekersController extends HttpServlet {
                     interview.setReason(null);
                     interview.setStatus(0); // Pending
                     interview.setScheduleAt(scheduleDate);
+                    interview.setCreatedBy(recruiterId);
 
                     createdInterviewId = ivDao.insert(interview);
                 } catch (Exception ex) {
