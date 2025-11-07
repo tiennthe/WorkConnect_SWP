@@ -106,16 +106,16 @@ public class InterviewsServlet extends HttpServlet {
         if (statusParam != null && !statusParam.isEmpty()) {
             try {
                 int status = Integer.parseInt(statusParam);
-                list = interviewsDAO.findBySeekerIdAndStatus(seeker.getJobSeekerID(), status, page, pageSize);
-                totalRecords = interviewsDAO.countBySeekerIdAndStatus(seeker.getJobSeekerID(), status);
+                list = interviewsDAO.findLatestBySeekerIdAndStatus(seeker.getJobSeekerID(), status, page, pageSize);
+                totalRecords = interviewsDAO.countLatestBySeekerIdAndStatus(seeker.getJobSeekerID(), status);
                 request.setAttribute("selectedStatus", statusParam);
             } catch (NumberFormatException ex) {
-                list = interviewsDAO.findBySeekerId(seeker.getJobSeekerID(), page, pageSize);
-                totalRecords = interviewsDAO.countBySeekerId(seeker.getJobSeekerID());
+                list = interviewsDAO.findLatestBySeekerId(seeker.getJobSeekerID(), page, pageSize);
+                totalRecords = interviewsDAO.countLatestBySeekerId(seeker.getJobSeekerID());
             }
         } else {
-            list = interviewsDAO.findBySeekerId(seeker.getJobSeekerID(), page, pageSize);
-            totalRecords = interviewsDAO.countBySeekerId(seeker.getJobSeekerID());
+            list = interviewsDAO.findLatestBySeekerId(seeker.getJobSeekerID(), page, pageSize);
+            totalRecords = interviewsDAO.countLatestBySeekerId(seeker.getJobSeekerID());
         }
 
         java.util.Map<Integer, String> jobPostingMap = new java.util.HashMap<>();
@@ -292,8 +292,8 @@ public class InterviewsServlet extends HttpServlet {
             String baseUrl = request.getScheme() + "://" + request.getServerName()
                     + ((request.getServerPort() == 80 || request.getServerPort() == 443) ? "" : ":" + request.getServerPort())
                     + request.getContextPath();
-            String link = baseUrl + "/applicationSeekers?jobPostId=" + app.getJobPostingID();
-            body.append("<br><a href=\"").append(link).append("\">View Applications</a>");
+            String link = baseUrl + "/interviewsManagement?action=details&id=" + app.getJobPostingID();
+            body.append("<br><a href=\"").append(link).append("\">View Interview</a>");
             body.append("<br><br>Best regards,");
 
             new Email().sendEmail(recruiterAcc.getEmail(), subject, body.toString());

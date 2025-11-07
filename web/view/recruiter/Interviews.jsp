@@ -75,7 +75,6 @@
         <table class="table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Application</th>
               <th>Schedule</th>
               <th>Status</th>
@@ -85,7 +84,6 @@
           <tbody>
             <c:forEach var="iv" items="${interviews}">
               <tr>
-                <td>${iv.id}</td>
                 <td><c:out value="${jobPostingMap[iv.id]}"/></td>
                 <td>${iv.scheduleAt}</td>
                 <td>

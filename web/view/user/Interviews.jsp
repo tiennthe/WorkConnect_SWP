@@ -63,8 +63,6 @@
         <table class="table table-bordered bg-white">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Application ID</th>
               <th>Job Title</th>
               <th>Schedule Date</th>
               <th>Status</th>
@@ -74,8 +72,6 @@
           <tbody>
             <c:forEach var="iv" items="${interviews}">
               <tr>
-                <td>${iv.id}</td>
-                <td>${iv.applicationID}</td>
                 <td><c:out value="${jobPostingMap[iv.id]}"/></td>
                 <td>${iv.scheduleAt}</td>
                 <td>
@@ -91,7 +87,7 @@
                     <i class="fa-solid fa-eye"></i> View
                   </a>
 
-                  <c:if test="${iv.status != 2 && iv.status != 3 && iv.createdBy != iv.recruiterID}">
+                  <c:if test="${iv.status != 2 && iv.status != 3 && iv.createdBy != iv.seekerID}">
                     <!-- Confirm -->
                     <form action="${pageContext.request.contextPath}/interviews" method="post" class="d-inline">
                       <input type="hidden" name="action" value="confirm" />

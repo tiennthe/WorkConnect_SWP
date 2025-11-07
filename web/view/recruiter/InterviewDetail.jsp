@@ -91,11 +91,6 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
                 <div class="card">
                   <div class="card-body">
                     <h5 class="card-title">Current Interview</h5>
-                    <p><strong>ID:</strong> ${interview.id}</p>
-                    <p>
-                      <strong>Application ID:</strong>
-                      ${interview.applicationID}
-                    </p>
                     <p><strong>Schedule:</strong> ${interview.scheduleAt}</p>
                     <p>
                       <strong>Reason:</strong>
@@ -103,7 +98,10 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
                         value="${interview.reason != null ? interview.reason : '-'}"
                       />
                     </p>
-                    <p><strong>Created By:</strong> <c:out value="${createdByName}"/></p>
+                    <p>
+                      <strong>Created By:</strong>
+                      <c:out value="${createdByName}" />
+                    </p>
                     <p>
                       <strong>Status:</strong>
                       <c:choose>
@@ -169,10 +167,9 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
                       ><div class="text-muted">No history.</div></c:if
                     >
                     <c:if test="${not empty history}">
-                      <table class="table">
+                      <table class="table table-striped align-middle">
                         <thead>
                           <tr>
-                            <th>ID</th>
                             <th>Schedule</th>
                             <th>Status</th>
                             <th>Reason</th>
@@ -182,7 +179,6 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
                         <tbody>
                           <c:forEach var="h" items="${history}">
                             <tr>
-                              <td>${h.id}</td>
                               <td>${h.scheduleAt}</td>
                               <td>
                                 <c:choose>
@@ -208,8 +204,14 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
                                   >
                                 </c:choose>
                               </td>
-                              <td><c:out value="${h.reason}" /></td>
-                              <td><c:out value="${createdByNameMap[h.id]}" /></td>
+                              <td>
+                                <c:out
+                                  value="${empty h.reason ? '-' : h.reason}"
+                                />
+                              </td>
+                              <td>
+                                <c:out value="${createdByNameMap[h.id]}" />
+                              </td>
                             </tr>
                           </c:forEach>
                         </tbody>
@@ -223,6 +225,59 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         </div>
       </div>
       <%@ include file="../recruiter/footer-re.jsp" %>
+    </div>
+    <!-- Reschedule Modal -->
+    <div class="modal fade" id="resModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Reschedule Interview</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <form
+            action="${pageContext.request.contextPath}/interviewsManagement"
+            method="post"
+          >
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">New date & time</label>
+                <input
+                  type="datetime-local"
+                  name="scheduleAt"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Reason</label>
+                <textarea
+                  name="reason"
+                  class="form-control"
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+              <input type="hidden" name="action" value="reschedule" />
+              <input type="hidden" name="id" value="${interview.id}" />
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              <button type="submit" class="btn btn-warning">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
