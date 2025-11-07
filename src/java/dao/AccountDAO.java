@@ -30,12 +30,8 @@ public class AccountDAO extends GenericDAO<Account> {
                 + "           ,[isActive]\n"
                 + "           ,[updatedAt]\n"
                 + "           ,[gender])\n"
-                + "           ,[province])\n"
-                + "           ,[provinceId])\n"
-                + "           ,[ward])\n"
-                + "           ,[wardId])\n"
                 + "     VALUES\n"
-                + "           (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + "           (?,?,?,?,?,?,?,?,?,?,?,?,?)";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("username", t.getUsername());
         parameterMap.put("password", t.getPassword());
@@ -50,10 +46,6 @@ public class AccountDAO extends GenericDAO<Account> {
         parameterMap.put("isActive", true);
         parameterMap.put("updatedAt", t.getUpdatedAt());
         parameterMap.put("gender", t.isGender());
-        parameterMap.put("province", t.getProvince());
-        parameterMap.put("provinceId", t.getProvinceId());
-        parameterMap.put("ward", t.getWard());
-        parameterMap.put("wardId", t.getWardId());
 
         return insertGenericDAO(sql, parameterMap);
     }
@@ -105,10 +97,6 @@ public class AccountDAO extends GenericDAO<Account> {
                 + "      ,[createAt] = ?\n"
                 + "      ,[updatedAt] = getDate()\n"
                 + "      ,[gender] = ?\n"
-                + "      ,[province] = ?\n"
-                + "      ,[provinceId] = ?\n"
-                + "      ,[ward] = ?\n"
-                + "      ,[wardId] = ?\n"
                 + " WHERE id = ?";
 
         parameterMap = new LinkedHashMap<>();
@@ -125,10 +113,6 @@ public class AccountDAO extends GenericDAO<Account> {
         parameterMap.put("isActive", account.isIsActive());
         parameterMap.put("createAt", account.getCreateAt());
         parameterMap.put("gender", account.isGender());
-        parameterMap.put("province", account.getProvince());
-        parameterMap.put("provinceId", account.getProvinceId());
-        parameterMap.put("ward", account.getWard());
-        parameterMap.put("wardId", account.getWardId());
         parameterMap.put("id", account.getId());
         updateGenericDAO(sql, parameterMap);
     }

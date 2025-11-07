@@ -18,16 +18,11 @@ public class JobPostings {
     private int Job_Posting_CategoryID;
     private String Status;
     private List<Applications> application;
-    private String province;
-    private String ward;
-    private int provinceId;
-    private int wardId;
-    
 
     public JobPostings() {
     }
 
-    public JobPostings(int JobPostingID, int RecruiterID, String Title, String Description, String Requirements, double MinSalary, double MaxSalary, String Location, Date PostedDate, Date ClosingDate, int Job_Posting_CategoryID, String Status, String province, String ward, int provinceId, int wardId) {
+    public JobPostings(int JobPostingID, int RecruiterID, String Title, String Description, String Requirements, double MinSalary, double MaxSalary, String Location, Date PostedDate, Date ClosingDate, int Job_Posting_CategoryID, String Status) {
         this.JobPostingID = JobPostingID;
         this.RecruiterID = RecruiterID;
         this.Title = Title;
@@ -40,42 +35,6 @@ public class JobPostings {
         this.ClosingDate = ClosingDate;
         this.Job_Posting_CategoryID = Job_Posting_CategoryID;
         this.Status = Status;
-        this.province = province;
-        this.ward = ward;
-        this.provinceId = provinceId;
-        this.wardId = wardId;
-    }
-    
-    public String getWard(){
-        return ward;
-    }
-    
-    public String getProvince(){
-        return province;
-    }
-
-    public int getProvinceId() {
-        return provinceId;
-    }
-
-    public int getWardId() {
-        return wardId;
-    }
-
-    public void setProvinceId(int provinceId) {
-        this.provinceId = provinceId;
-    }
-
-    public void setWardId(int wardId) {
-        this.wardId = wardId;
-    }
-
-    public void setProvince(String province) {
-        this.province = province;
-    }
-
-    public void setWard(String ward) {
-        this.ward = ward;
     }
 
     public int getJobPostingID() {

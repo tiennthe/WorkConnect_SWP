@@ -25,11 +25,7 @@ public class CompanyDAO extends GenericDAO<Company> {
                 + "           ,[accountId]\n"
                 + "           ,[BusinessCode]\n"
                 + "           ,[BusinessLicenseImage])\n"
-                + "           ,[province])\n"
-                + "           ,[provinceId])\n"
-                + "           ,[ward])\n"
-                + "           ,[wardId])\n"
-                + "     VALUES(?,?,?,?,?,?,?,?,?,?)";
+                + "     VALUES(?,?,?,?,?,?)";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("name", t.getName());
         parameterMap.put("description", t.getDescription());
@@ -37,10 +33,6 @@ public class CompanyDAO extends GenericDAO<Company> {
         parameterMap.put("acountId", String.valueOf(t.getAccountId()));
         parameterMap.put("BusinessCode", t.getBusinessCode());
         parameterMap.put("BusinessLicenseImage", t.getBusinessLicenseImage());
-        parameterMap.put("province", t.getProvince());
-        parameterMap.put("provinceId", t.getProvinceId());
-        parameterMap.put("ward", t.getWard());
-        parameterMap.put("wardId", t.getWardId());
         return insertGenericDAO(sql, parameterMap);
     }
 
@@ -110,19 +102,11 @@ public class CompanyDAO extends GenericDAO<Company> {
                 + "   SET [name] = ?\n"
                 + "      ,[description] = ?\n"
                 + "      ,[location] = ?\n"
-                + "      ,[province] = ?\n"
-                + "      ,[provinceId] = ?\n"
-                + "      ,[ward] = ?\n"
-                + "      ,[wardId] = ?\n"
                 + " WHERE id = ?";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("name", companyEdit.getName());
         parameterMap.put("description", companyEdit.getDescription());
         parameterMap.put("location", companyEdit.getLocation());
-        parameterMap.put("province", companyEdit.getProvince());
-        parameterMap.put("provinceId", companyEdit.getProvinceId());
-        parameterMap.put("ward", companyEdit.getWard());
-        parameterMap.put("wardId", companyEdit.getWardId());
         parameterMap.put("id", companyEdit.getId());
         updateGenericDAO(sql, parameterMap);
     }

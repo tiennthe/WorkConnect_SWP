@@ -13,15 +13,10 @@ public class Company {
     private int accountId;
     private String businessCode;
     private String BusinessLicenseImage;
-    private String province;
-    private String ward;
-    private int provinceId;
-    private int wardId;
-    
     public Company() {
     }
 
-    public Company(int id, String name, String description, String location, boolean verificationStatus, int accountId, String businessCode, String BusinessLicenseImage, String province, String ward, int provinceId, int wardId) {
+    public Company(int id, String name, String description, String location, boolean verificationStatus, int accountId, String businessCode, String BusinessLicenseImage) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -30,42 +25,6 @@ public class Company {
         this.accountId = accountId;
         this.businessCode = businessCode;
         this.BusinessLicenseImage = BusinessLicenseImage;
-        this.province = province;
-        this.ward = ward;
-        this.provinceId = provinceId;
-        this.wardId = wardId;
-    }
-    
-    public String getWard(){
-        return ward;
-    }
-    
-    public String getProvince(){
-        return province;
-    }
-
-    public int getProvinceId() {
-        return provinceId;
-    }
-
-    public int getWardId() {
-        return wardId;
-    }
-
-    public void setProvinceId(int provinceId) {
-        this.provinceId = provinceId;
-    }
-
-    public void setWardId(int wardId) {
-        this.wardId = wardId;
-    }
-
-    public void setProvince(String province) {
-        this.province = province;
-    }
-
-    public void setWard(String ward) {
-        this.ward = ward;
     }
 
     public int getId() {

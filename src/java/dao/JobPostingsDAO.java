@@ -60,10 +60,6 @@ public class JobPostingsDAO extends GenericDAO<JobPostings> {
                 + "      ,[ClosingDate] = ?\n"
                 + "      ,[Job_Posting_CategoryID] = ?\n"
                 + "      ,[Status] = ?\n"
-                + "      ,[province] = ?\n"
-                + "      ,[provinceId] = ?\n"
-                + "      ,[ward] = ?\n"
-                + "      ,[wardId] = ?\n"
                 + " WHERE JobPostingID = ?";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("RecruiterID", t.getRecruiterID());
@@ -77,10 +73,6 @@ public class JobPostingsDAO extends GenericDAO<JobPostings> {
         parameterMap.put("ClosingDate", t.getClosingDate());
         parameterMap.put("Job_Posting_CategoryID", t.getJob_Posting_CategoryID());
         parameterMap.put("Status", t.getStatus());
-        parameterMap.put("province", t.getProvince());
-        parameterMap.put("provinceId", t.getProvinceId());
-        parameterMap.put("ward", t.getWard());
-        parameterMap.put("wardId", t.getWardId());
         parameterMap.put("JobPostingID", t.getJobPostingID());
         updateGenericDAO(sql, parameterMap);
     }
@@ -115,11 +107,7 @@ public class JobPostingsDAO extends GenericDAO<JobPostings> {
                 + "           ,[ClosingDate]\n"
                 + "           ,[Job_Posting_CategoryID]\n"
                 + "           ,[Status])\n"
-                + "           ,[province])\n"
-                + "           ,[provinceId])\n"
-                + "           ,[ward])\n"
-                + "           ,[wardId])\n"
-                + "     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + "     VALUES(?,?,?,?,?,?,?,?,?,?,?)";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("RecruiterID", t.getRecruiterID());
         parameterMap.put("Title", t.getTitle());
@@ -132,10 +120,6 @@ public class JobPostingsDAO extends GenericDAO<JobPostings> {
         parameterMap.put("ClosingDate", t.getClosingDate());
         parameterMap.put("Job_Posting_CategoryID", t.getJob_Posting_CategoryID());
         parameterMap.put("Status", t.getStatus());
-        parameterMap.put("province", t.getProvince());
-        parameterMap.put("provinceId", t.getProvinceId());
-        parameterMap.put("ward", t.getWard());
-        parameterMap.put("wardId", t.getWardId());
         return insertGenericDAO(sql, parameterMap);
     }
 
