@@ -431,5 +431,69 @@
                                             }
                                         });
         </script>
+        <script>
+            (function(){
+                function pad(n){ return String(n).padStart(2,'0'); }
+                function toLocalDatetimeValue(date){
+                    const d = new Date(date.getTime());
+                    d.setSeconds(0,0);
+                    return [d.getFullYear(),'-',pad(d.getMonth()+1),'-',pad(d.getDate()),'T',pad(d.getHours()),':',pad(d.getMinutes())].join('');
+                }
+                function clampPast(input){
+                    if(!input) return;
+                    const now = new Date();
+                    const min = toLocalDatetimeValue(now);
+                    input.setAttribute('min', min);
+                    if(input.value){
+                        const selected = new Date(input.value);
+                        if(selected < now) input.value = min;
+                    }
+                }
+                document.addEventListener('DOMContentLoaded', function(){
+                    var scheduleAt = document.getElementById('scheduleAt');
+                    if (scheduleAt){
+                        clampPast(scheduleAt);
+                        scheduleAt.addEventListener('focus', function(){ clampPast(scheduleAt); });
+                        scheduleAt.addEventListener('input', function(){ clampPast(scheduleAt); });
+                    }
+                    var statusEl = document.getElementById('status');
+                    if (statusEl){
+                        statusEl.addEventListener('change', function(){
+                            var input = document.getElementById('scheduleAt');
+                            clampPast(input);
+                        });
+                    }
+                    var form = document.getElementById('changeStatusForm');
+                    if (form){
+                        form.addEventListener('submit', function(e){
+                            var st = document.getElementById('status');
+                            var input = document.getElementById('scheduleAt');
+                            if (st && st.value === '2' && input){
+                                var now = new Date();
+                                var val = input.value ? new Date(input.value) : null;
+                                if (!val || val < now){
+                                    e.preventDefault();
+                                    clampPast(input);
+                                    if (input.reportValidity){
+                                        input.setCustomValidity('Please select a future date and time.');
+                                        input.reportValidity();
+                                        input.setCustomValidity('');
+                                    } else {
+                                        alert('Please select a future date and time.');
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    var modal = document.getElementById('changeStatusModal');
+                    if (modal){
+                        modal.addEventListener('shown.bs.modal', function(){
+                            var input = document.getElementById('scheduleAt');
+                            clampPast(input);
+                        });
+                    }
+                });
+            })();
+        </script>
     </body>
 </html>
