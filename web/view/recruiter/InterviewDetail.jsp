@@ -279,6 +279,60 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         </div>
       </div>
     </div>
+    <script>
+      (function () {
+        function pad(n) { return String(n).padStart(2, '0'); }
+        function toLocalDatetimeValue(date) {
+          const d = new Date(date.getTime());
+          d.setSeconds(0, 0);
+          return [
+            d.getFullYear(), '-', pad(d.getMonth() + 1), '-', pad(d.getDate()),
+            'T', pad(d.getHours()), ':', pad(d.getMinutes())
+          ].join('');
+        }
+        function clampPast(input) {
+          const now = new Date();
+          const min = toLocalDatetimeValue(now);
+          input.setAttribute('min', min);
+          if (input.value) {
+            const selected = new Date(input.value);
+            if (selected < now) input.value = min;
+          }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+          const inputs = document.querySelectorAll('input[type="datetime-local"][name="scheduleAt"]');
+          inputs.forEach(function (input) {
+            clampPast(input);
+            input.addEventListener('focus', function(){ clampPast(input); });
+            input.addEventListener('input', function(){ clampPast(input); });
+            if (input.form) {
+              input.form.addEventListener('submit', function (e) {
+                const now = new Date();
+                const val = input.value ? new Date(input.value) : null;
+                if (!val || val < now) {
+                  e.preventDefault();
+                  clampPast(input);
+                  if (input.reportValidity) {
+                    input.setCustomValidity('Please choose a future date and time.');
+                    input.reportValidity();
+                    input.setCustomValidity('');
+                  } else {
+                    alert('Please choose a future date and time.');
+                  }
+                }
+              });
+            }
+          });
+          if (window.bootstrap) {
+            document.querySelectorAll('.modal').forEach(function (m) {
+              m.addEventListener('shown.bs.modal', function () {
+                m.querySelectorAll('input[type="datetime-local"][name="scheduleAt"]').forEach(clampPast);
+              });
+            });
+          }
+        });
+      })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

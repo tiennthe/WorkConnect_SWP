@@ -151,8 +151,8 @@ public class CVServlet extends HttpServlet {
                 }
             }
 
-            // Define the directory path for storing CV files
-            String path = request.getServletContext().getRealPath("cvFiles");
+            // Define the directory path for storing CV files (under JobSeeker)
+            String path = request.getServletContext().getRealPath("JobSeeker/cvFiles");
             File dir = new File(path);
             if (!dir.exists()) {
                 dir.mkdirs(); // Create the directory if it doesn't exist
@@ -165,7 +165,7 @@ public class CVServlet extends HttpServlet {
             // Insert CV record into the database
             CV newCV = new CV();
             newCV.setJobSeekerID(jobSeeker.getJobSeekerID());
-            newCV.setFilePath(request.getContextPath() + "/cvFiles/" + cvFile.getName());
+            newCV.setFilePath(request.getContextPath() + "/JobSeeker/cvFiles/" + cvFile.getName());
             newCV.setUploadDate(Date.valueOf(LocalDate.now()));
             cvDAO.insert(newCV);
 
@@ -223,7 +223,7 @@ public class CVServlet extends HttpServlet {
                 }
             }
 
-            String path = request.getServletContext().getRealPath("cvFiles");
+            String path = request.getServletContext().getRealPath("JobSeeker/cvFiles");
             File dir = new File(path);
             // Create directory if it doesn't exist
             if (!dir.exists()) {
@@ -233,7 +233,7 @@ public class CVServlet extends HttpServlet {
             File cvFile = new File(dir, part.getSubmittedFileName());
             part.write(cvFile.getAbsolutePath());
             // Update CV record in the database
-            existingCV.setFilePath(request.getContextPath() + "/cvFiles/" + cvFile.getName());
+            existingCV.setFilePath(request.getContextPath() + "/JobSeeker/cvFiles/" + cvFile.getName());
             existingCV.setUploadDate(Date.valueOf(LocalDate.now()));
             cvDAO.updateCV(existingCV);
 
@@ -274,8 +274,15 @@ public class CVServlet extends HttpServlet {
         String filePath = cv.getFilePath(); // Example: /cvFile/1721092306015_6454ae59431b066cbfda5ca4_PE1-SWR-Sample.pdf
         String rootPath = request.getServletContext().getRealPath("/");
 
-        // Ensure the path uses the 'cvFile' directory
-        String relativeFilePath = filePath.replace("JobSeeker/cvFiles/", "cvFiles/");
+        // Normalize stored path: remove context path and leading slash for filesystem resolution
+        String ctxPath = request.getContextPath();
+        String relativeFilePath = filePath;
+        if (ctxPath != null && !ctxPath.isEmpty() && relativeFilePath.startsWith(ctxPath)) {
+            relativeFilePath = relativeFilePath.substring(ctxPath.length());
+        }
+        if (relativeFilePath.startsWith("/")) {
+            relativeFilePath = relativeFilePath.substring(1);
+        }
 
         // Concatenate root and file path
         String absoluteFilePath = rootPath + relativeFilePath;
