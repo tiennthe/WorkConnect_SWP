@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import model.Account;
 import model.Applications;
@@ -195,6 +196,15 @@ public class InterviewsManagementServlet extends HttpServlet {
         }
         if (ts.length() == 16) ts = ts + ":00";
         Timestamp newDate = Timestamp.valueOf(ts);
+
+        // Server-side validation: not in the past and not more than 1 month ahead
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime max = now.plusMonths(1);
+        LocalDateTime chosen = newDate.toLocalDateTime();
+        if (chosen.isBefore(now) || chosen.isAfter(max)) {
+            response.sendRedirect(request.getContextPath() + "/interviewsManagement?action=details&id=" + interviewId + "&error=invalidDate");
+            return;
+        }
 
         // Create new interview record (status = 1 Rescheduled)
         Interviews newIv = new Interviews();

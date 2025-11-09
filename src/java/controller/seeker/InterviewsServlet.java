@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import model.Account;
 import model.Interviews;
@@ -216,6 +217,15 @@ public class InterviewsServlet extends HttpServlet {
         }
         if (ts.length() == 16) ts = ts + ":00"; // add seconds if missing
         Timestamp newDate = Timestamp.valueOf(ts);
+
+        // Server-side validation: not in the past and not more than 1 month ahead
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime max = now.plusMonths(1);
+        LocalDateTime chosen = newDate.toLocalDateTime();
+        if (chosen.isBefore(now) || chosen.isAfter(max)) {
+            response.sendRedirect("interviews?action=details&id=" + interviewId + "&error=invalidDate");
+            return;
+        }
 
         if (!ownsInterview(request.getSession(), interviewId)) {
             response.sendRedirect("interviews?error=unauthorized");

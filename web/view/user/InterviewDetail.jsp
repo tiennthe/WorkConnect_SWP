@@ -338,34 +338,44 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
             'T', pad(d.getHours()), ':', pad(d.getMinutes())
           ].join('');
         }
-        function clampPast(input) {
+        function bounds() {
           const now = new Date();
-          const min = toLocalDatetimeValue(now);
-          input.setAttribute('min', min);
+          now.setSeconds(0,0);
+          const max = new Date(now.getTime());
+          max.setMonth(max.getMonth() + 1);
+          return { now, max };
+        }
+        function clampRange(input) {
+          const { now, max } = bounds();
+          const minStr = toLocalDatetimeValue(now);
+          const maxStr = toLocalDatetimeValue(max);
+          input.setAttribute('min', minStr);
+          input.setAttribute('max', maxStr);
           if (input.value) {
             const selected = new Date(input.value);
-            if (selected < now) input.value = min;
+            if (selected < now) input.value = minStr;
+            if (selected > max) input.value = maxStr;
           }
         }
         document.addEventListener('DOMContentLoaded', function () {
           const inputs = document.querySelectorAll('input[type="datetime-local"][name="scheduleAt"]');
           inputs.forEach(function (input) {
-            clampPast(input);
-            input.addEventListener('focus', function(){ clampPast(input); });
-            input.addEventListener('input', function(){ clampPast(input); });
+            clampRange(input);
+            input.addEventListener('focus', function(){ clampRange(input); });
+            input.addEventListener('input', function(){ clampRange(input); });
             if (input.form) {
               input.form.addEventListener('submit', function (e) {
-                const now = new Date();
+                const { now, max } = bounds();
                 const val = input.value ? new Date(input.value) : null;
-                if (!val || val < now) {
+                if (!val || val < now || val > max) {
                   e.preventDefault();
-                  clampPast(input);
+                  clampRange(input);
                   if (input.reportValidity) {
-                    input.setCustomValidity('Please choose a future date and time.');
+                    input.setCustomValidity('Please choose a date/time within the next month.');
                     input.reportValidity();
                     input.setCustomValidity('');
                   } else {
-                    alert('Please choose a future date and time.');
+                    alert('Please choose a date/time within the next month.');
                   }
                 }
               });
@@ -374,7 +384,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
           if (window.bootstrap) {
             document.querySelectorAll('.modal').forEach(function (m) {
               m.addEventListener('shown.bs.modal', function () {
-                m.querySelectorAll('input[type="datetime-local"][name="scheduleAt"]').forEach(clampPast);
+                m.querySelectorAll('input[type="datetime-local"][name="scheduleAt"]').forEach(clampRange);
               });
             });
           }
