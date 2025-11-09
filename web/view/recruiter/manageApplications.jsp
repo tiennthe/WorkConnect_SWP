@@ -439,28 +439,38 @@
                     d.setSeconds(0,0);
                     return [d.getFullYear(),'-',pad(d.getMonth()+1),'-',pad(d.getDate()),'T',pad(d.getHours()),':',pad(d.getMinutes())].join('');
                 }
-                function clampPast(input){
-                    if(!input) return;
+                function bounds(){
                     const now = new Date();
-                    const min = toLocalDatetimeValue(now);
-                    input.setAttribute('min', min);
+                    now.setSeconds(0,0);
+                    const max = new Date(now.getTime());
+                    max.setMonth(max.getMonth()+1);
+                    return { now, max };
+                }
+                function clampRange(input){
+                    if(!input) return;
+                    const { now, max } = bounds();
+                    const minStr = toLocalDatetimeValue(now);
+                    const maxStr = toLocalDatetimeValue(max);
+                    input.setAttribute('min', minStr);
+                    input.setAttribute('max', maxStr);
                     if(input.value){
                         const selected = new Date(input.value);
-                        if(selected < now) input.value = min;
+                        if(selected < now) input.value = minStr;
+                        if(selected > max) input.value = maxStr;
                     }
                 }
                 document.addEventListener('DOMContentLoaded', function(){
                     var scheduleAt = document.getElementById('scheduleAt');
                     if (scheduleAt){
-                        clampPast(scheduleAt);
-                        scheduleAt.addEventListener('focus', function(){ clampPast(scheduleAt); });
-                        scheduleAt.addEventListener('input', function(){ clampPast(scheduleAt); });
+                        clampRange(scheduleAt);
+                        scheduleAt.addEventListener('focus', function(){ clampRange(scheduleAt); });
+                        scheduleAt.addEventListener('input', function(){ clampRange(scheduleAt); });
                     }
                     var statusEl = document.getElementById('status');
                     if (statusEl){
                         statusEl.addEventListener('change', function(){
                             var input = document.getElementById('scheduleAt');
-                            clampPast(input);
+                            clampRange(input);
                         });
                     }
                     var form = document.getElementById('changeStatusForm');
@@ -469,17 +479,18 @@
                             var st = document.getElementById('status');
                             var input = document.getElementById('scheduleAt');
                             if (st && st.value === '2' && input){
-                                var now = new Date();
+                                var b = bounds();
+                                var now = b.now, max = b.max;
                                 var val = input.value ? new Date(input.value) : null;
-                                if (!val || val < now){
+                                if (!val || val < now || val > max){
                                     e.preventDefault();
-                                    clampPast(input);
+                                    clampRange(input);
                                     if (input.reportValidity){
-                                        input.setCustomValidity('Please select a future date and time.');
+                                        input.setCustomValidity('Please select a date/time within the next month.');
                                         input.reportValidity();
                                         input.setCustomValidity('');
                                     } else {
-                                        alert('Please select a future date and time.');
+                                        alert('Please select a date/time within the next month.');
                                     }
                                 }
                             }
@@ -489,7 +500,7 @@
                     if (modal){
                         modal.addEventListener('shown.bs.modal', function(){
                             var input = document.getElementById('scheduleAt');
-                            clampPast(input);
+                            clampRange(input);
                         });
                     }
                 });

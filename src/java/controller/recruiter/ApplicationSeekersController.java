@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import model.Account;
 import model.Applications;
 import model.CV;
@@ -212,6 +213,15 @@ public class ApplicationSeekersController extends HttpServlet {
                 String ts = scheduleRaw.replace('T', ' ');
                 if (ts.length() == 16) ts = ts + ":00";
                 scheduleDate = Timestamp.valueOf(ts);
+
+                // Server-side validation: not in the past and not more than 1 month ahead
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime max = now.plusMonths(1);
+                LocalDateTime chosen = scheduleDate.toLocalDateTime();
+                if (chosen.isBefore(now) || chosen.isAfter(max)) {
+                    response.sendRedirect(request.getContextPath() + "/applicationSeekers?error=invalidDate&jobPostId=" + request.getParameter("jobPostId"));
+                    return;
+                }
             }
             String emailContent = request.getParameter("emailContent"); // Nội dung tùy chỉnh từ người dùng
 
