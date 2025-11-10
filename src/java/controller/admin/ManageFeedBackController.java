@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller.admin;
 
 import static constant.CommonConst.RECORD_PER_PAGE;
@@ -14,14 +10,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import model.Account;
-import model.Company;
 import model.Feedback;
 import model.PageControl;
 import utils.Email;
@@ -29,73 +21,60 @@ import utils.Email;
 @WebServlet(name = "ManageFeedBackController", urlPatterns = {"/feedback"})
 public class ManageFeedBackController extends HttpServlet {
 
-    FeedbackDAO dao = new FeedbackDAO();
-    AccountDAO accDao = new AccountDAO();
+    FeedbackDAO dao = new FeedbackDAO(); // DAO xử lý Feedback
+    AccountDAO accDao = new AccountDAO(); // DAO xử lý Account
 
+    // ------------------- Xử lý GET -------------------
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        // Lấy thông báo từ URL nếu có
         String success = request.getParameter("success");
         String error = request.getParameter("error");
         request.setAttribute("success", success);
         request.setAttribute("error", error);
-        // get ve pageNumber
+
+        // Phân trang
         PageControl pageControl = new PageControl();
         String pageRaw = request.getParameter("page");
-        //valid page
         int page;
         try {
             page = Integer.parseInt(pageRaw);
-            if (page <= 1) {
-                page = 1;
-            }
+            if (page <= 1) page = 1;
         } catch (NumberFormatException e) {
             page = 1;
         }
-        //        get ve gia tri cua drop-down filter
+
+        // Lấy giá trị filter và search từ JSP
         String filter = request.getParameter("filter") != null ? request.getParameter("filter") : "";
-        //        get ve gia tri tu thanh search
         String searchQuery = request.getParameter("search") != null ? request.getParameter("search") : "";
         List<Feedback> list;
-        //get ve url
         String requestURL = request.getRequestURL().toString();
         int totalRecord = 0;
+
+        // Nếu có search
         if (!searchQuery.isEmpty()) {
             switch (filter) {
-                case "0":
-                    // Tìm tất cả các công ty theo từ khóa
+                case "0": // Tìm tất cả theo từ khóa
                     list = dao.searchFeedbackByName(searchQuery, page);
                     totalRecord = dao.findTotalRecordByName(searchQuery);
                     pageControl.setUrlPattern(requestURL + "?search=" + searchQuery + "&");
                     break;
-                case "1":
-                    // Tìm các công ty đã được chấp nhận theo từ khóa
-                    list = dao.searchFeedbackByNameAndStatus(searchQuery, 1, page);
-                    totalRecord = dao.findTotalRecordByNameAndStatus(searchQuery, 1);
-                    pageControl.setUrlPattern(requestURL + "?filter=1&search=" + searchQuery + "&");
+                case "1": // Tìm theo từ khóa và trạng thái 1
+                case "2": // Tìm theo từ khóa và trạng thái 2
+                case "3": // Tìm theo từ khóa và trạng thái 3
+                    int status = Integer.parseInt(filter);
+                    list = dao.searchFeedbackByNameAndStatus(searchQuery, status, page);
+                    totalRecord = dao.findTotalRecordByNameAndStatus(searchQuery, status);
+                    pageControl.setUrlPattern(requestURL + "?filter=" + status + "&search=" + searchQuery + "&");
                     break;
-                case "2":
-                    // Tìm các công ty vi phạm theo từ khóa
-                    list = dao.searchFeedbackByNameAndStatus(searchQuery, 2, page);
-                    totalRecord = dao.findTotalRecordByNameAndStatus(searchQuery, 2);
-                    pageControl.setUrlPattern(requestURL + "?filter=2&search=" + searchQuery + "&");
-                    break;
-                case "3":
-                    // Tìm các công ty vi phạm theo từ khóa
-                    list = dao.searchFeedbackByNameAndStatus(searchQuery, 3, page);
-                    totalRecord = dao.findTotalRecordByNameAndStatus(searchQuery, 3);
-                    pageControl.setUrlPattern(requestURL + "?filter=3&search=" + searchQuery + "&");
-                    break;
-                default:
-                    // Mặc định sẽ tìm tất cả các công ty theo từ khóa
+                default: // Mặc định tìm tất cả
                     list = dao.searchFeedbackByName(searchQuery, page);
                     totalRecord = dao.findTotalRecordByName(searchQuery);
                     pageControl.setUrlPattern(requestURL + "?searchQuery=" + searchQuery + "&");
             }
-        }else {
-            //get ve request URL
-            //total record
-
+        } else { // Không có search, chỉ filter
             switch (filter) {
                 case "0":
                     list = dao.findAllGroupByName(page);
@@ -103,19 +82,12 @@ public class ManageFeedBackController extends HttpServlet {
                     pageControl.setUrlPattern(requestURL + "?");
                     break;
                 case "1":
-                    list = dao.filterFeedbackByStatus(1, page);
-                    totalRecord = dao.findTotalRecordByStatus(1);
-                    pageControl.setUrlPattern(requestURL + "?filter=1" + "&");
-                    break;
                 case "2":
-                    list = dao.filterFeedbackByStatus(2, page);
-                    totalRecord = dao.findTotalRecordByStatus(2);
-                    pageControl.setUrlPattern(requestURL + "?filter=2" + "&");
-                    break;
                 case "3":
-                    list = dao.filterFeedbackByStatus(3, page);
-                    totalRecord = dao.findTotalRecordByStatus(3);
-                    pageControl.setUrlPattern(requestURL + "?filter=3" + "&");
+                    int status = Integer.parseInt(filter);
+                    list = dao.filterFeedbackByStatus(status, page);
+                    totalRecord = dao.findTotalRecordByStatus(status);
+                    pageControl.setUrlPattern(requestURL + "?filter=" + status + "&");
                     break;
                 default:
                     list = dao.findAllGroupByName(page);
@@ -123,24 +95,27 @@ public class ManageFeedBackController extends HttpServlet {
                     pageControl.setUrlPattern(requestURL + "?");
             }
         }
-            request.setAttribute("listFeedback", list);
-//total page
-        int totalPage = (totalRecord % RECORD_PER_PAGE) == 0 ? (totalRecord / RECORD_PER_PAGE) : (totalRecord / RECORD_PER_PAGE) + 1;
-        //set total record, total page, page to pageControl
+
+        request.setAttribute("listFeedback", list);
+
+        // Tính tổng số trang
+        int totalPage = (totalRecord % RECORD_PER_PAGE == 0) ? (totalRecord / RECORD_PER_PAGE) : (totalRecord / RECORD_PER_PAGE + 1);
         pageControl.setPage(page);
         pageControl.setTotalRecord(totalRecord);
         pageControl.setTotalPages(totalPage);
-        //set attribute pageControl 
         request.setAttribute("pageControl", pageControl);
+
         request.getRequestDispatcher("view/admin/feedbackManagement.jsp").forward(request, response);
     }
 
+    // ------------------- Xử lý POST -------------------
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //get ve action
+
         String action = request.getParameter("action") != null ? request.getParameter("action") : "";
         String url = "";
+
         switch (action) {
             case "resolved":
                 url = resolvedFeedback(request, response);
@@ -158,44 +133,37 @@ public class ManageFeedBackController extends HttpServlet {
             default:
                 throw new AssertionError();
         }
+
         response.sendRedirect(url);
     }
 
+    // ------------------- Xem chi tiết feedback -------------------
     private String viewDetailFeedback(HttpServletRequest request, HttpServletResponse response) {
-        String url = "";
-        //lay ve id
         int id = Integer.parseInt(request.getParameter("feedback-id"));
-        // lay ve feedback theo id
         Feedback feedbackFound = dao.findFeedbackById(id);
         if (feedbackFound != null) {
             request.setAttribute("feedbackFound", feedbackFound);
-            url = "view/admin/detailFeedback.jsp";
         } else {
             request.setAttribute("error-view", "Have defect in view detail process!!");
-            url = "view/admin/detailFeedback.jsp";
         }
-        return url;
+        return "view/admin/detailFeedback.jsp";
     }
 
+    // ------------------- Xử lý resolved feedback -------------------
     private String resolvedFeedback(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
-
-        String url = "";
-        //lay ve response
-        String responseFeedback = request.getParameter("response");
-        //lay ve id
         int id = Integer.parseInt(request.getParameter("feedback-id"));
-        //lay ve feedback theo id
+        String responseFeedback = request.getParameter("response");
         Feedback feedbackFound = dao.findFeedbackById(id);
         Account account = accDao.findUserById(feedbackFound.getAccountID());
-        if (feedbackFound != null && feedbackFound.getStatus() != 3) {
-            //xu li gui mail
+        String url;
+
+        if (feedbackFound != null && feedbackFound.getStatus() != 3) { // Trạng thái khác rejected
             String subject = "Response from Admin Regarding Your Feedback";
             String content = responseFeedback;
             try {
-                //doi trang thai theo id va set trang thai bang 2(Resolved)
-                Email.sendEmail(account.getEmail(), subject, content);
-                dao.changeStatus(id, 2);
-                url = "feedback?success=" + URLEncoder.encode("Resolved and sent nofication to " + account.getFullName() + " successfully!!!", "UTF-8");
+                Email.sendEmail(account.getEmail(), subject, content); // gửi email
+                dao.changeStatus(id, 2); // đổi trạng thái resolved
+                url = "feedback?success=" + URLEncoder.encode("Resolved and sent notification to " + account.getFullName() + " successfully!!!", "UTF-8");
             } catch (MessagingException ex) {
                 url = "feedback?error=" + URLEncoder.encode("Have error in process of resolve!!!", "UTF-8");
             }
@@ -205,24 +173,21 @@ public class ManageFeedBackController extends HttpServlet {
         return url;
     }
 
+    // ------------------- Xử lý reject feedback -------------------
     private String rejectFeedback(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
-        String url = "";
-        String responseFeedback = request.getParameter("response");
-        //lay ve id
         int id = Integer.parseInt(request.getParameter("feedback-id"));
-        //lay ve feedback theo id
+        String responseFeedback = request.getParameter("response");
         Feedback feedbackFound = dao.findFeedbackById(id);
         Account account = accDao.findUserById(feedbackFound.getAccountID());
-        //xử lí: trạng thái feedback phải khác resolved
-        if (feedbackFound != null && feedbackFound.getStatus() != 2) {
-            //xu li gui mail
+        String url;
+
+        if (feedbackFound != null && feedbackFound.getStatus() != 2) { // Trạng thái khác resolved
             String subject = "Response from Admin Regarding Your Feedback";
             String content = responseFeedback;
             try {
-                //doi trang thai theo id va set trang thai bang 2(Resolved)
                 Email.sendEmail(account.getEmail(), subject, content);
-                dao.changeStatus(id, 3);
-                url = "feedback?success=" + URLEncoder.encode("Reject and sent nofication to " + account.getFullName() + " successfully!!!", "UTF-8");
+                dao.changeStatus(id, 3); // đổi trạng thái rejected
+                url = "feedback?success=" + URLEncoder.encode("Reject and sent notification to " + account.getFullName() + " successfully!!!", "UTF-8");
             } catch (MessagingException ex) {
                 url = "feedback?error=" + URLEncoder.encode("Have error in process of resolve!!!", "UTF-8");
             }
@@ -232,14 +197,12 @@ public class ManageFeedBackController extends HttpServlet {
         return url;
     }
 
+    // ------------------- Xóa feedback -------------------
     private String deleteFeedback(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
-        String url = "";
-        //lay ve id
         int id = Integer.parseInt(request.getParameter("feedback-id"));
-        //lay ve feedback theo id
         Feedback feedbackFound = dao.findFeedbackById(id);
-        if (feedbackFound != null && feedbackFound.getStatus() != 1) {
-            //doi trang thai theo id va set trang thai bang 3(Resolved)
+        String url;
+        if (feedbackFound != null && feedbackFound.getStatus() != 1) { // Không xóa feedback mới chưa xử lý
             dao.deleteFeedback(feedbackFound);
             url = "feedback";
         } else {
@@ -247,5 +210,4 @@ public class ManageFeedBackController extends HttpServlet {
         }
         return url;
     }
-
 }

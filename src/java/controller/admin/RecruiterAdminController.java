@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller.admin;
 
 import static constant.CommonConst.RECORD_PER_PAGE;
@@ -19,68 +15,68 @@ import model.PageControl;
 @WebServlet(name = "RecruiterAdminController", urlPatterns = {"/recruiters"})
 public class RecruiterAdminController extends HttpServlet {
 
-    AccountDAO dao = new AccountDAO();
+    AccountDAO dao = new AccountDAO(); // DAO xử lý Account (recruiter)
 
+    // ------------------- Xử lý GET -------------------
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         PageControl pageControl = new PageControl();
         String pageRaw = request.getParameter("page");
-        //valid page
         int page;
+
+        // Validate page
         try {
             page = Integer.parseInt(pageRaw);
-            if (page <= 1) {
-                page = 1;
-            }
+            if (page <= 1) page = 1;
         } catch (NumberFormatException e) {
             page = 1;
         }
-        ///get ve action 
+
+        // Xác định action để forward tới đúng JSP
         String action = request.getParameter("action") != null ? request.getParameter("action") : "";
         String url;
         switch (action) {
-            case "view-list-seekers":
+            case "view-list-seekers": 
                 url = "view/admin/recruiterManagement.jsp";
                 break;
             default:
                 url = "view/admin/recruiterManagement.jsp";
         }
-        //lay ve id de view profile
-        // get ve danh sach list seeker
+
+        // Lấy giá trị filter và search từ JSP
         String filter = request.getParameter("filter") != null ? request.getParameter("filter") : "";
-        //get ve gia tri search by name
         String searchQuery = request.getParameter("searchQuery") != null ? request.getParameter("searchQuery") : "";
         List<Account> listRecruiters = null;
-        //get ve request URL
         String requestURL = request.getRequestURL().toString();
-        //total record
         int totalRecord = 0;
+
+        // Nếu có search
         if (!searchQuery.isEmpty()) {
             switch (filter) {
-                case "all":
-                    listRecruiters = dao.searchUserByName(searchQuery, 2, page); // Tìm tất cả
+                case "all": // tìm tất cả
+                    listRecruiters = dao.searchUserByName(searchQuery, 2, page);
                     totalRecord = dao.findTotalRecordByName(searchQuery, 2);
                     pageControl.setUrlPattern(requestURL + "?searchQuery=" + searchQuery + "&");
                     break;
-                case "active":
-                    listRecruiters = dao.searchUserByNameAndStatus(searchQuery, true, 2, page); // Chỉ tìm active
+                case "active": // chỉ active
+                    listRecruiters = dao.searchUserByNameAndStatus(searchQuery, true, 2, page);
                     totalRecord = dao.findTotalRecordByNameAndStatus(searchQuery, true, 2);
                     pageControl.setUrlPattern(requestURL + "?filter=active&searchQuery=" + searchQuery + "&");
                     break;
-                case "inactive":
-                    listRecruiters = dao.searchUserByNameAndStatus(searchQuery, false, 2, page); // Chỉ tìm inactive
+                case "inactive": // chỉ inactive
+                    listRecruiters = dao.searchUserByNameAndStatus(searchQuery, false, 2, page);
                     totalRecord = dao.findTotalRecordByNameAndStatus(searchQuery, false, 2);
                     pageControl.setUrlPattern(requestURL + "?filter=inactive&searchQuery=" + searchQuery + "&");
                     break;
                 default:
-                    listRecruiters = dao.searchUserByName(searchQuery, 2, page); // Mặc định là tất cả
+                    listRecruiters = dao.searchUserByName(searchQuery, 2, page);
                     totalRecord = dao.findTotalRecordByName(searchQuery, 2);
                     pageControl.setUrlPattern(requestURL + "?searchQuery=" + searchQuery + "&");
             }
-        } else {
+        } else { // Không search, chỉ filter
             switch (filter) {
-
                 case "all":
                     listRecruiters = dao.findAllUserByRoleId(2, page);
                     totalRecord = dao.findAllTotalRecord(2);
@@ -89,12 +85,12 @@ public class RecruiterAdminController extends HttpServlet {
                 case "active":
                     listRecruiters = dao.filterUserByStatus(true, 2, page);
                     totalRecord = dao.findTotalRecordByStatus(true, 2);
-                    pageControl.setUrlPattern(requestURL + "?filter=active" + "&");
+                    pageControl.setUrlPattern(requestURL + "?filter=active&");
                     break;
                 case "inactive":
                     listRecruiters = dao.filterUserByStatus(false, 2, page);
                     totalRecord = dao.findTotalRecordByStatus(false, 2);
-                    pageControl.setUrlPattern(requestURL + "?filter=inactive" + "&");
+                    pageControl.setUrlPattern(requestURL + "?filter=inactive&");
                     break;
                 default:
                     listRecruiters = dao.findAllUserByRoleId(2, page);
@@ -102,52 +98,55 @@ public class RecruiterAdminController extends HttpServlet {
                     pageControl.setUrlPattern(requestURL + "?");
             }
         }
+
         request.setAttribute("listRecruiters", listRecruiters);
-        // Handle GET requests based on the action
-        //total page
-        int totalPage = (totalRecord % RECORD_PER_PAGE) == 0 ? (totalRecord / RECORD_PER_PAGE) : (totalRecord / RECORD_PER_PAGE) + 1;
-        //set total record, total page, page to pageControl
+
+        // Tính tổng số trang
+        int totalPage = (totalRecord % RECORD_PER_PAGE == 0) ? (totalRecord / RECORD_PER_PAGE) : (totalRecord / RECORD_PER_PAGE + 1);
         pageControl.setPage(page);
         pageControl.setTotalRecord(totalRecord);
         pageControl.setTotalPages(totalPage);
-        //set attribute pageControl 
         request.setAttribute("pageControl", pageControl);
-        
 
-        // Forward to the appropriate page
+        // Forward đến JSP quản lý recruiter
         request.getRequestDispatcher(url).forward(request, response);
     }
 
+    // ------------------- Xử lý POST -------------------
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         String action = request.getParameter("action") != null ? request.getParameter("action") : "";
         String url;
+
         switch (action) {
             case "deactive":
-                url = deactive(request);
+                url = deactive(request); // vô hiệu hóa recruiter
                 break;
             case "active":
-                url = active(request);
+                url = active(request); // kích hoạt recruiter
                 break;
             case "view-detail":
-                url = viewDetail(request);
+                url = viewDetail(request); // xem chi tiết recruiter
                 request.getRequestDispatcher(url).forward(request, response);
                 return;
-
             default:
                 url = "view/admin/recruiterManagement.jsp";
         }
+
         response.sendRedirect(url);
     }
 
+    // ------------------- Vô hiệu hóa recruiter -------------------
     private String deactive(HttpServletRequest request) {
         int id = Integer.parseInt(request.getParameter("id-recruiter"));
         Account account = dao.findUserById(id);
         dao.deactiveAccount(account);
-        return "seekers";
+        return "seekers"; // quay về danh sách recruiters
     }
 
+    // ------------------- Kích hoạt recruiter -------------------
     private String active(HttpServletRequest request) {
         int id = Integer.parseInt(request.getParameter("id-recruiter"));
         Account account = dao.findUserById(id);
@@ -155,12 +154,11 @@ public class RecruiterAdminController extends HttpServlet {
         return "seekers";
     }
 
+    // ------------------- Xem chi tiết recruiter -------------------
     private String viewDetail(HttpServletRequest request) {
         int id = Integer.parseInt(request.getParameter("id-recruiter"));
         Account account = dao.findUserById(id);
         request.setAttribute("accountView", account);
         return "view/admin/viewDetailUser.jsp";
     }
-
-    
 }
