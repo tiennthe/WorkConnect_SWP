@@ -52,6 +52,13 @@
                                     <input type="date" name="dob" id="dob" class="form-control" value="${requestScope.dob}" required>
                                     <span class="text-danger">${errorDob}</span>
                                 </div>
+                               <div class="mb-3">
+    <label class="form-label">Phone</label>
+    <input type="tel" name="phone" class="form-control" value="${phone}" placeholder="0912345678" required>
+    <span class="text-danger">${errorPhone}</span>
+</div>
+
+
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Username</label>
                                     <input type="text" name="username" id="username" class="form-control" placeholder="Enter username" value="${requestScope.username}" required>

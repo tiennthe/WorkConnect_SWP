@@ -36,10 +36,10 @@ public class Validation {
 
     // Hàm kiểm tra số điện thoại
     public boolean CheckPhoneNumber(String phone) {
-        // Biểu thức chính quy để kiểm tra số điện thoại
-        String regex = "^(\\+\\d{1,3})?\\d{10}$";
-        return phone.matches(regex);
-    }
+    if (phone == null) return false;
+    String regex = "^(0[35789][0-9]{8})$"; // Số VN chuẩn: 10 số
+    return phone.matches(regex);
+}
 
     public boolean checkUserName(String username) {
         // Biểu thức chính quy: chỉ cho phép chữ cái, số và dấu gạch dưới

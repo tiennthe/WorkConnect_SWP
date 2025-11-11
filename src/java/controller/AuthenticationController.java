@@ -332,100 +332,89 @@ public class AuthenticationController extends HttpServlet {
     }
 
     private String signUp(HttpServletRequest request, HttpServletResponse response) throws MessagingException, ServletException, IOException {
-        String url;
+    String url;
 
-        // Get sign-up information
-        int roleId = Integer.parseInt(request.getParameter("role"));
-        String lastname = request.getParameter("lastname");
-        String firstname = request.getParameter("firstname");
-        String gender = request.getParameter("gender");
-        Date dob = Date.valueOf(request.getParameter("dob"));
-        int yearofbirth = dob.toLocalDate().getYear();
-        String username = request.getParameter("username");
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        // set sign-up information to request to save the data in the form
-        request.setAttribute("role", roleId);
-        request.setAttribute("lname", lastname);
-        request.setAttribute("fname", firstname);
-        request.setAttribute("gender", gender);
-        request.setAttribute("dob", dob);
-        request.setAttribute("username", username);
-        request.setAttribute("email", email);
-        request.setAttribute("password", password);
+    int roleId = Integer.parseInt(request.getParameter("role"));
+    String lastname = request.getParameter("lastname");
+    String firstname = request.getParameter("firstname");
+    String gender = request.getParameter("gender");
+    Date dob = Date.valueOf(request.getParameter("dob"));
+    int yearofbirth = dob.toLocalDate().getYear();
 
-        // Create account object
-        Account account = new Account();
-        account.setRoleId(roleId);
-        account.setLastName(lastname);
-        account.setFirstName(firstname);
-        switch (gender) {
-            case "male":
-                account.setGender(true);
-                break;
-            case "female":
-                account.setGender(false);
-                break;
-            default:
-                account.setGender(true);
-        }
-        account.setDob(dob);
-        account.setUsername(username);
-        account.setEmail(email);
-        account.setPassword(password);
+    String username = request.getParameter("username");
+    String email = request.getParameter("email");
+    String phone = request.getParameter("phone"); // <--- THÊM DÒNG NÀY
+    String password = request.getParameter("password");
 
-        // Check if username or email already exists
-        boolean isExistUsername = accountDAO.checkUsernameExist(account);
-        boolean isExistUserEmail = accountDAO.checkUserEmailExist(account);
+    request.setAttribute("role", roleId);
+    request.setAttribute("lname", lastname);
+    request.setAttribute("fname", firstname);
+    request.setAttribute("gender", gender);
+    request.setAttribute("dob", dob);
+    request.setAttribute("username", username);
+    request.setAttribute("email", email);
+    request.setAttribute("phone", phone); // <--- THÊM DÒNG NÀY
+    request.setAttribute("password", password);
 
-        // Handle validation errors
-        // Initialize error messages
-        Map<String, String> errorMessages = new HashMap<>();
+    Account account = new Account();
+    account.setRoleId(roleId);
+    account.setLastName(lastname);
+    account.setFirstName(firstname);
+    account.setGender(gender.equals("male"));
+    account.setDob(dob);
+    account.setUsername(username);
+    account.setEmail(email);
+    account.setPhone(phone); // <--- THÊM DÒNG NÀY
+    account.setPassword(password);
 
-        if (!valid.checkName(firstname)) {
-            errorMessages.put("errorFname", "Your first name is invalid!!");
-        }
-        if (!valid.checkYearOfBirth(yearofbirth)) {
-            errorMessages.put("errorDob", "You must be between 17 and 50 years old!");
-        }
-        if (!valid.checkName(lastname)) {
-            errorMessages.put("errorLname", "Your last name is invalid!!");
-        }
-        if (!valid.checkUserName(username)) {
-            errorMessages.put("errorUsername", "Your username must not contain special characters");
-        }
-        if (isExistUsername) {
-            errorMessages.put("errorUsernameExits", "Username exists!!");
-        }
-        if (isExistUserEmail) {
-            errorMessages.put("errorEmail", "Email exists!!");
-        }
-        if (!valid.checkPassword(password)) {
-            errorMessages.put("errorPassword", "Password must follow the convention!!");
-        }
+    boolean isExistUsername = accountDAO.checkUsernameExist(account);
+    boolean isExistUserEmail = accountDAO.checkUserEmailExist(account);
 
-        // Check if there are any errors
-        if (!errorMessages.isEmpty()) {
-            // Set error messages in request attributes
-            for (Map.Entry<String, String> entry : errorMessages.entrySet()) {
-                request.setAttribute(entry.getKey(), entry.getValue());
-            }
-            url = "view/authen/register.jsp";
-        } else {
-            // Generate OTP and send email
-            int sixDigitNumber = 100000 + new Random().nextInt(900000);
-            Email.sendEmail(email, "OTP Register Account", "Hello, your OTP code is: " + sixDigitNumber);
+    Map<String, String> errorMessages = new HashMap<>();
 
-            // Store OTP and account info in session
-            HttpSession session = request.getSession();
-            session.setAttribute("OTPCode", sixDigitNumber);
-            session.setAttribute("userRegister", account);
-
-            // Forward to OTP confirmation page
-            return "view/authen/confirmOTP.jsp";  // Forward to OTP page after registration
-        }
-        return url;
+    if (!valid.checkName(firstname)) {
+        errorMessages.put("errorFname", "Your first name is invalid!!");
     }
+    if (!valid.checkYearOfBirth(yearofbirth)) {
+        errorMessages.put("errorDob", "You must be between 17 and 50 years old!");
+    }
+    if (!valid.checkName(lastname)) {
+        errorMessages.put("errorLname", "Your last name is invalid!!");
+    }
+    if (!valid.checkUserName(username)) {
+        errorMessages.put("errorUsername", "Your username must not contain special characters");
+    }
+    if (isExistUsername) {
+        errorMessages.put("errorUsernameExits", "Username exists!!");
+    }
+    if (isExistUserEmail) {
+        errorMessages.put("errorEmail", "Email exists!!");
+    }
+    if (!valid.checkPassword(password)) {
+        errorMessages.put("errorPassword", "Password must follow the convention!!");
+    }
+    if (!valid.CheckPhoneNumber(phone)) { // <--- THÊM VALIDATE PHONE
+        errorMessages.put("errorPhone", "Phone number is invalid! (Example: 0912345678)");
+    }
+
+    if (!errorMessages.isEmpty()) {
+        for (Map.Entry<String, String> entry : errorMessages.entrySet()) {
+            request.setAttribute(entry.getKey(), entry.getValue());
+        }
+        url = "view/authen/register.jsp";
+    } else {
+        int sixDigitNumber = 100000 + new Random().nextInt(900000);
+        Email.sendEmail(email, "OTP Register Account", "Hello, your OTP code is: " + sixDigitNumber);
+
+        HttpSession session = request.getSession();
+        session.setAttribute("OTPCode", sixDigitNumber);
+        session.setAttribute("userRegister", account);
+
+        return "view/authen/confirmOTP.jsp";
+    }
+    return url;
+}
+
 
     private String verifyOtp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
