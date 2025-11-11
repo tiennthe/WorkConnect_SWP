@@ -334,7 +334,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <form id="changeStatusForm" action="${pageContext.request.contextPath}/applicationSeekers" method="post">
+                                <form id="changeStatusForm" action="${pageContext.request.contextPath}/applicationSeekers" method="post" data-loading="true">
                                     <input type="hidden" name="applicationId" id="applicationId" value="">
                                     <input type="hidden" name="jobPostId" value="${param.jobPostId}">
                                     <div class="mb-3">
@@ -352,7 +352,7 @@
                                         <label for="emailContent" class="form-label">Email Content:</label>
                                         <textarea class="form-control" id="emailContent" name="emailContent" rows="4" placeholder="Enter your message here..." required></textarea>
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                    <button type="submit" class="btn btn-primary" data-loading-button>Submit</button>
                                     <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button> <!-- Nút reset -->
                                 </form>
                             </div>
@@ -503,6 +503,37 @@
                             clampRange(input);
                         });
                     }
+                    var loadingForms = document.querySelectorAll('form[data-loading]');
+                    loadingForms.forEach(function(form){
+                        var submitBtn = form.querySelector('[data-loading-button]');
+                        if (!submitBtn) {
+                            return;
+                        }
+                        form.addEventListener('submit', function(e){
+                            if (e.defaultPrevented) {
+                                return;
+                            }
+                            var buttons = form.querySelectorAll('button');
+                            buttons.forEach(function(btn){
+                                if (btn !== submitBtn) {
+                                    btn.disabled = true;
+                                }
+                            });
+                            if (!submitBtn.dataset.originalText) {
+                                submitBtn.dataset.originalText = submitBtn.textContent;
+                            }
+                            submitBtn.disabled = true;
+                            submitBtn.textContent = 'Loading...';
+                            var parent = form.parentElement;
+                            if (parent) {
+                                parent.querySelectorAll('button').forEach(function(btn){
+                                    if (btn.closest('form') !== form) {
+                                        btn.disabled = true;
+                                    }
+                                });
+                            }
+                        });
+                    });
                 });
             })();
         </script>

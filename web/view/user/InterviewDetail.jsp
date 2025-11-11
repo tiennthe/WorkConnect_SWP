@@ -135,11 +135,16 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
                     action="${pageContext.request.contextPath}/interviews"
                     method="post"
                     class="d-inline"
+                    data-loading="true"
                   >
                     <input type="hidden" name="action" value="confirm" />
                     <input type="hidden" name="id" value="${interview.id}" />
                     <input type="hidden" name="status" value="2" />
-                    <button type="submit" class="btn btn-success">
+                    <button
+                      type="submit"
+                      class="btn btn-success"
+                      data-loading-button
+                    >
                       <i class="fa fa-check"></i> Confirm
                     </button>
                   </form>
@@ -238,6 +243,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
           <form
             action="${pageContext.request.contextPath}/interviews"
             method="post"
+            data-loading="true"
           >
             <div class="modal-body">
               <div class="mb-3">
@@ -271,7 +277,9 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
               >
                 Close
               </button>
-              <button type="submit" class="btn btn-warning">Save</button>
+              <button type="submit" class="btn btn-warning" data-loading-button>
+                Save
+              </button>
             </div>
           </form>
         </div>
@@ -294,6 +302,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
           <form
             action="${pageContext.request.contextPath}/interviews"
             method="post"
+            data-loading="true"
           >
             <div class="modal-body">
               <div class="mb-3">
@@ -317,7 +326,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
               >
                 Close
               </button>
-              <button type="submit" class="btn btn-danger">
+              <button type="submit" class="btn btn-danger" data-loading-button>
                 Confirm Reject
               </button>
             </div>
@@ -329,18 +338,27 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
     <jsp:include page="../common/footer.jsp"></jsp:include>
     <script>
       (function () {
-        function pad(n) { return String(n).padStart(2, '0'); }
+        function pad(n) {
+          return String(n).padStart(2, "0");
+        }
         function toLocalDatetimeValue(date) {
           const d = new Date(date.getTime());
           d.setSeconds(0, 0);
           return [
-            d.getFullYear(), '-', pad(d.getMonth() + 1), '-', pad(d.getDate()),
-            'T', pad(d.getHours()), ':', pad(d.getMinutes())
-          ].join('');
+            d.getFullYear(),
+            "-",
+            pad(d.getMonth() + 1),
+            "-",
+            pad(d.getDate()),
+            "T",
+            pad(d.getHours()),
+            ":",
+            pad(d.getMinutes()),
+          ].join("");
         }
         function bounds() {
           const now = new Date();
-          now.setSeconds(0,0);
+          now.setSeconds(0, 0);
           const max = new Date(now.getTime());
           max.setMonth(max.getMonth() + 1);
           return { now, max };
@@ -349,45 +367,86 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
           const { now, max } = bounds();
           const minStr = toLocalDatetimeValue(now);
           const maxStr = toLocalDatetimeValue(max);
-          input.setAttribute('min', minStr);
-          input.setAttribute('max', maxStr);
+          input.setAttribute("min", minStr);
+          input.setAttribute("max", maxStr);
           if (input.value) {
             const selected = new Date(input.value);
             if (selected < now) input.value = minStr;
             if (selected > max) input.value = maxStr;
           }
         }
-        document.addEventListener('DOMContentLoaded', function () {
-          const inputs = document.querySelectorAll('input[type="datetime-local"][name="scheduleAt"]');
+        document.addEventListener("DOMContentLoaded", function () {
+          const inputs = document.querySelectorAll(
+            'input[type="datetime-local"][name="scheduleAt"]'
+          );
           inputs.forEach(function (input) {
             clampRange(input);
-            input.addEventListener('focus', function(){ clampRange(input); });
-            input.addEventListener('input', function(){ clampRange(input); });
+            input.addEventListener("focus", function () {
+              clampRange(input);
+            });
+            input.addEventListener("input", function () {
+              clampRange(input);
+            });
             if (input.form) {
-              input.form.addEventListener('submit', function (e) {
+              input.form.addEventListener("submit", function (e) {
                 const { now, max } = bounds();
                 const val = input.value ? new Date(input.value) : null;
                 if (!val || val < now || val > max) {
                   e.preventDefault();
                   clampRange(input);
                   if (input.reportValidity) {
-                    input.setCustomValidity('Please choose a date/time within the next month.');
+                    input.setCustomValidity(
+                      "Please choose a date/time within the next month."
+                    );
                     input.reportValidity();
-                    input.setCustomValidity('');
+                    input.setCustomValidity("");
                   } else {
-                    alert('Please choose a date/time within the next month.');
+                    alert("Please choose a date/time within the next month.");
                   }
                 }
               });
             }
           });
           if (window.bootstrap) {
-            document.querySelectorAll('.modal').forEach(function (m) {
-              m.addEventListener('shown.bs.modal', function () {
-                m.querySelectorAll('input[type="datetime-local"][name="scheduleAt"]').forEach(clampRange);
+            document.querySelectorAll(".modal").forEach(function (m) {
+              m.addEventListener("shown.bs.modal", function () {
+                m.querySelectorAll(
+                  'input[type="datetime-local"][name="scheduleAt"]'
+                ).forEach(clampRange);
               });
             });
           }
+          const loadingForms = document.querySelectorAll("form[data-loading]");
+          loadingForms.forEach(function (form) {
+            const submitBtn = form.querySelector("[data-loading-button]");
+            if (!submitBtn) {
+              return;
+            }
+            form.addEventListener("submit", function (e) {
+              if (e.defaultPrevented) {
+                return;
+              }
+              const buttons = form.querySelectorAll("button");
+              buttons.forEach(function (btn) {
+                if (btn !== submitBtn) {
+                  btn.disabled = true;
+                }
+              });
+              if (!submitBtn.dataset.originalText) {
+                submitBtn.dataset.originalText = submitBtn.textContent;
+              }
+              submitBtn.disabled = true;
+              submitBtn.textContent = "Loading...";
+              const parent = form.parentElement;
+              if (parent) {
+                parent.querySelectorAll("button").forEach(function (btn) {
+                  if (btn.closest("form") !== form) {
+                    btn.disabled = true;
+                  }
+                });
+              }
+            });
+          });
         });
       })();
     </script>

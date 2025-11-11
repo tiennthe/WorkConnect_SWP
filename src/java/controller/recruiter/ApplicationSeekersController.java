@@ -8,8 +8,10 @@ import dao.AccountDAO;
 import dao.ApplicationDAO;
 import dao.CVDAO;
 import dao.EducationDAO;
+import dao.CompanyDAO;
 import dao.JobPostingsDAO;
 import dao.InterviewsDAO;
+import dao.RecruitersDAO;
 import dao.WorkExperienceDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -28,6 +30,9 @@ import model.CV;
 import model.Education;
 import model.WorkExperience;
 import model.Interviews;
+import model.JobPostings;
+import model.Recruiters;
+import model.Company;
 import utils.Email;
 
 
@@ -231,8 +236,21 @@ public class ApplicationSeekersController extends HttpServlet {
             Applications application = applicationDao.getDetailApplication(applicationId);
             String applicantEmail = application.getJobSeeker().getAccount().getEmail();
 
+            JobPostings jobPosting = new JobPostingsDAO().findJobPostingById(application.getJobPostingID());
+            String companyName = "Company";
+            if (jobPosting != null) {
+                List<Recruiters> recruiterList = new RecruitersDAO().listRecruiterByRecruiterID(jobPosting.getRecruiterID());
+                Recruiters recruiter = (recruiterList != null && !recruiterList.isEmpty()) ? recruiterList.get(0) : null;
+                if (recruiter != null) {
+                    Company company = new CompanyDAO().findCompanyById(recruiter.getCompanyID());
+                    if (company != null && company.getName() != null && !company.getName().trim().isEmpty()) {
+                        companyName = company.getName().trim();
+                    }
+                }
+            }
+
             // Nội dung email mẫu
-            String subject = "[Company] Notification about the job you applied for";
+            String subject = "[" + companyName + "] Notification about the job you applied for";
             String greeting = "Dear " + application.getJobSeeker().getAccount().getFullName() + ",<br><br>";
             String footer = "<br><br>Best regards,<br>Thank you very much.";
 

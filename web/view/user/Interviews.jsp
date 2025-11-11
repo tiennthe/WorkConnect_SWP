@@ -89,11 +89,11 @@
 
                   <c:if test="${iv.status != 2 && iv.status != 3 && iv.createdBy != iv.seekerID}">
                     <!-- Confirm -->
-                    <form action="${pageContext.request.contextPath}/interviews" method="post" class="d-inline">
+                    <form action="${pageContext.request.contextPath}/interviews" method="post" class="d-inline" data-loading="true">
                       <input type="hidden" name="action" value="confirm" />
                       <input type="hidden" name="id" value="${iv.id}" />
                       <input type="hidden" name="status" value="2" />
-                      <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-check"></i> Confirm</button>
+                      <button type="submit" class="btn btn-success btn-sm" data-loading-button><i class="fa fa-check"></i> Confirm</button>
                     </form>
 
                     <!-- Reschedule trigger -->
@@ -117,7 +117,7 @@
                       <h5 class="modal-title">Reschedule Interview</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="${pageContext.request.contextPath}/interviews" method="post">
+                    <form action="${pageContext.request.contextPath}/interviews" method="post" data-loading="true">
                       <div class="modal-body">
                         <div class="mb-3">
                           <label class="form-label">New date & time</label>
@@ -133,7 +133,7 @@
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-warning">Save</button>
+                        <button type="submit" class="btn btn-warning" data-loading-button>Save</button>
                       </div>
                     </form>
                   </div>
@@ -148,7 +148,7 @@
                       <h5 class="modal-title">Reject Interview</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="${pageContext.request.contextPath}/interviews" method="post">
+                    <form action="${pageContext.request.contextPath}/interviews" method="post" data-loading="true">
                       <div class="modal-body">
                         <div class="mb-3">
                           <label class="form-label">Reason</label>
@@ -160,7 +160,7 @@
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-danger">Confirm Reject</button>
+                        <button type="submit" class="btn btn-danger" data-loading-button>Confirm Reject</button>
                       </div>
                     </form>
                   </div>
@@ -261,6 +261,37 @@
               });
             });
           }
+          const loadingForms = document.querySelectorAll('form[data-loading]');
+          loadingForms.forEach(function (form) {
+            const submitBtn = form.querySelector('[data-loading-button]');
+            if (!submitBtn) {
+              return;
+            }
+            form.addEventListener('submit', function (e) {
+              if (e.defaultPrevented) {
+                return;
+              }
+              const buttons = form.querySelectorAll('button');
+              buttons.forEach(function (btn) {
+                if (btn !== submitBtn) {
+                  btn.disabled = true;
+                }
+              });
+              if (!submitBtn.dataset.originalText) {
+                submitBtn.dataset.originalText = submitBtn.textContent;
+              }
+              submitBtn.disabled = true;
+              submitBtn.textContent = 'Loading...';
+              const parent = form.parentElement;
+              if (parent) {
+                parent.querySelectorAll('button').forEach(function (btn) {
+                  if (btn.closest('form') !== form) {
+                    btn.disabled = true;
+                  }
+                });
+              }
+            });
+          });
         });
       })();
     </script>
