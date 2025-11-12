@@ -144,6 +144,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
                       type="submit"
                       class="btn btn-success"
                       data-loading-button
+                      data-loading-text="Confirming..."
                     >
                       <i class="fa fa-check"></i> Confirm
                     </button>
@@ -277,7 +278,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
               >
                 Close
               </button>
-              <button type="submit" class="btn btn-warning" data-loading-button>
+              <button type="submit" class="btn btn-warning" data-loading-button data-loading-text="Scheduling...">
                 Save
               </button>
             </div>
@@ -326,7 +327,7 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
               >
                 Close
               </button>
-              <button type="submit" class="btn btn-danger" data-loading-button>
+              <button type="submit" class="btn btn-danger" data-loading-button data-loading-text="Rejecting...">
                 Confirm Reject
               </button>
             </div>
@@ -432,11 +433,14 @@ uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
                   btn.disabled = true;
                 }
               });
-              if (!submitBtn.dataset.originalText) {
-                submitBtn.dataset.originalText = submitBtn.textContent;
+              if (!submitBtn.dataset.originalHtml) {
+                submitBtn.dataset.originalHtml = submitBtn.innerHTML;
               }
+              const spinner =
+                '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>';
+              const loadingText = submitBtn.dataset.loadingText || "Loading...";
               submitBtn.disabled = true;
-              submitBtn.textContent = "Loading...";
+              submitBtn.innerHTML = spinner + loadingText;
               const parent = form.parentElement;
               if (parent) {
                 parent.querySelectorAll("button").forEach(function (btn) {
