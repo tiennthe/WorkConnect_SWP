@@ -102,7 +102,7 @@
                     <form action="${pageContext.request.contextPath}/interviewsManagement" method="post" class="d-inline" data-loading="true">
                       <input type="hidden" name="action" value="confirm" />
                       <input type="hidden" name="id" value="${iv.id}" />
-                      <button type="submit" class="btn btn-success btn-sm" data-loading-button><i class="fa fa-check"></i> Confirm</button>
+                      <button type="submit" class="btn btn-success btn-sm" data-loading-button data-loading-text="Confirming..."><i class="fa fa-check"></i> Confirm</button>
                     </form>
                     <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#res-${iv.id}"><i class="fa fa-calendar"></i> Reschedule</button>
                   </c:if>
@@ -132,7 +132,7 @@
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-warning" data-loading-button>Save</button>
+                        <button type="submit" class="btn btn-warning" data-loading-button data-loading-text="Scheduling...">Save</button>
                       </div>
                     </form>
                   </div>
@@ -232,36 +232,53 @@
               });
             });
           }
-          const loadingForms = document.querySelectorAll('form[data-loading]');
-          loadingForms.forEach(function (form) {
-            const submitBtn = form.querySelector('[data-loading-button]');
+          function activateLoadingState(form, submitBtn) {
             if (!submitBtn) {
               return;
             }
-            form.addEventListener('submit', function (e) {
-              if (e.defaultPrevented) {
-                return;
+            const buttons = form.querySelectorAll('button');
+            buttons.forEach(function (btn) {
+              if (btn !== submitBtn) {
+                btn.disabled = true;
               }
-              const buttons = form.querySelectorAll('button');
-              buttons.forEach(function (btn) {
-                if (btn !== submitBtn) {
+            });
+            if (!submitBtn.dataset.originalHtml) {
+              submitBtn.dataset.originalHtml = submitBtn.innerHTML;
+            }
+            const spinner = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>';
+            const loadingText = submitBtn.dataset.loadingText || 'Loading...';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = spinner + loadingText;
+            const parent = form.parentElement;
+            if (parent) {
+              parent.querySelectorAll('button').forEach(function (btn) {
+                if (btn.closest('form') !== form) {
                   btn.disabled = true;
                 }
               });
-              if (!submitBtn.dataset.originalText) {
-                submitBtn.dataset.originalText = submitBtn.textContent;
-              }
-              submitBtn.disabled = true;
-              submitBtn.textContent = 'Loading...';
-              const parent = form.parentElement;
-              if (parent) {
-                parent.querySelectorAll('button').forEach(function (btn) {
-                  if (btn.closest('form') !== form) {
-                    btn.disabled = true;
-                  }
-                });
-              }
-            });
+            }
+          }
+
+          document.addEventListener('submit', function (event) {
+            const form = event.target;
+            if (!(form instanceof HTMLFormElement)) {
+              return;
+            }
+            if (!form.matches('form[data-loading]')) {
+              return;
+            }
+            if (event.defaultPrevented || form.dataset.loadingActive === 'true') {
+              return;
+            }
+            const submitBtn =
+              (event.submitter && event.submitter.hasAttribute('data-loading-button'))
+                ? event.submitter
+                : form.querySelector('[data-loading-button]');
+            if (!submitBtn) {
+              return;
+            }
+            form.dataset.loadingActive = 'true';
+            activateLoadingState(form, submitBtn);
           });
         });
       })();

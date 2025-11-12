@@ -2,7 +2,6 @@ package dao;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import model.Interviews;
 import java.sql.Timestamp;
 
@@ -47,21 +46,21 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
     }
 
     public List<Interviews> findBySeekerId(int seekerId) {
-        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC";
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? ORDER BY [CreatedAt] DESC, [Id] DESC";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("SeekerID", seekerId);
         return queryGenericDAO(Interviews.class, sql, parameterMap);
     }
 
     public List<Interviews> findByRecruiterId(int recruiterId) {
-        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [RecruiterID] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC";
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [RecruiterID] = ? ORDER BY [CreatedAt] DESC, [Id] DESC";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("RecruiterID", recruiterId);
         return queryGenericDAO(Interviews.class, sql, parameterMap);
     }
 
     public List<Interviews> findBySeekerIdAndStatus(int seekerId, int status) {
-        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? AND [Status] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC";
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? AND [Status] = ? ORDER BY [CreatedAt] DESC, [Id] DESC";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("SeekerID", seekerId);
         parameterMap.put("Status", status);
@@ -70,7 +69,7 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
 
     // Pagination variants
     public List<Interviews> findBySeekerId(int seekerId, int page, int pageSize) {
-        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? ORDER BY [CreatedAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("SeekerID", seekerId);
         parameterMap.put("Offset", (page - 1) * pageSize);
@@ -79,7 +78,7 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
     }
 
     public List<Interviews> findBySeekerIdAndStatus(int seekerId, int status, int page, int pageSize) {
-        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? AND [Status] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [SeekerID] = ? AND [Status] = ? ORDER BY [CreatedAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("SeekerID", seekerId);
         parameterMap.put("Status", status);
@@ -98,12 +97,12 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
     // Latest-only (group by ApplicationID, RecruiterID, SeekerID) for seeker
     public List<Interviews> findLatestBySeekerId(int seekerId, int page, int pageSize) {
         String sql = "WITH iv AS (\n" +
-                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY CreatedAt DESC, Id DESC) rn\n" +
                 "  FROM [dbo].[Interviews]\n" +
                 "  WHERE SeekerID = ?\n" +
                 ")\n" +
                 "SELECT * FROM iv WHERE rn = 1\n" +
-                "ORDER BY ScheduleAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+                "ORDER BY CreatedAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("SeekerID", seekerId);
         parameterMap.put("Offset", (page - 1) * pageSize);
@@ -113,12 +112,12 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
 
     public List<Interviews> findLatestBySeekerIdAndStatus(int seekerId, int status, int page, int pageSize) {
         String sql = "WITH iv AS (\n" +
-                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY CreatedAt DESC, Id DESC) rn\n" +
                 "  FROM [dbo].[Interviews]\n" +
                 "  WHERE SeekerID = ? AND Status = ?\n" +
                 ")\n" +
                 "SELECT * FROM iv WHERE rn = 1\n" +
-                "ORDER BY ScheduleAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+                "ORDER BY CreatedAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("SeekerID", seekerId);
         parameterMap.put("Status", status);
@@ -129,7 +128,7 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
 
     public int countLatestBySeekerId(int seekerId) {
         String sql = "WITH iv AS (\n" +
-                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY CreatedAt DESC, Id DESC) rn\n" +
                 "  FROM [dbo].[Interviews]\n" +
                 "  WHERE SeekerID = ?\n" +
                 ") SELECT COUNT(*) FROM iv WHERE rn = 1";
@@ -140,7 +139,7 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
 
     public int countLatestBySeekerIdAndStatus(int seekerId, int status) {
         String sql = "WITH iv AS (\n" +
-                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY CreatedAt DESC, Id DESC) rn\n" +
                 "  FROM [dbo].[Interviews]\n" +
                 "  WHERE SeekerID = ? AND Status = ?\n" +
                 ") SELECT COUNT(*) FROM iv WHERE rn = 1";
@@ -151,7 +150,7 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
     }
 
     public List<Interviews> findByRecruiterId(int recruiterId, int page, int pageSize) {
-        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [RecruiterID] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [RecruiterID] = ? ORDER BY [CreatedAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("RecruiterID", recruiterId);
         parameterMap.put("Offset", (page - 1) * pageSize);
@@ -160,7 +159,7 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
     }
 
     public List<Interviews> findByRecruiterIdAndStatus(int recruiterId, int status, int page, int pageSize) {
-        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [RecruiterID] = ? AND [Status] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [RecruiterID] = ? AND [Status] = ? ORDER BY [CreatedAt] DESC, [Id] DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("RecruiterID", recruiterId);
         parameterMap.put("Status", status);
@@ -172,12 +171,12 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
     // Latest-only variants (group by ApplicationID, RecruiterID, SeekerID)
     public List<Interviews> findLatestByRecruiterId(int recruiterId, int page, int pageSize) {
         String sql = "WITH iv AS (\n" +
-                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY CreatedAt DESC, Id DESC) rn\n" +
                 "  FROM [dbo].[Interviews]\n" +
                 "  WHERE RecruiterID = ?\n" +
                 ")\n" +
                 "SELECT * FROM iv WHERE rn = 1\n" +
-                "ORDER BY ScheduleAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+                "ORDER BY CreatedAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("RecruiterID", recruiterId);
         parameterMap.put("Offset", (page - 1) * pageSize);
@@ -187,12 +186,12 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
 
     public List<Interviews> findLatestByRecruiterIdAndStatus(int recruiterId, int status, int page, int pageSize) {
         String sql = "WITH iv AS (\n" +
-                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  SELECT *, ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY CreatedAt DESC, Id DESC) rn\n" +
                 "  FROM [dbo].[Interviews]\n" +
                 "  WHERE RecruiterID = ? AND Status = ?\n" +
                 ")\n" +
                 "SELECT * FROM iv WHERE rn = 1\n" +
-                "ORDER BY ScheduleAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+                "ORDER BY CreatedAt DESC, Id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("RecruiterID", recruiterId);
         parameterMap.put("Status", status);
@@ -203,7 +202,7 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
 
     public int countLatestByRecruiterId(int recruiterId) {
         String sql = "WITH iv AS (\n" +
-                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY CreatedAt DESC, Id DESC) rn\n" +
                 "  FROM [dbo].[Interviews]\n" +
                 "  WHERE RecruiterID = ?\n" +
                 ") SELECT COUNT(*) FROM iv WHERE rn = 1";
@@ -214,7 +213,7 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
 
     public int countLatestByRecruiterIdAndStatus(int recruiterId, int status) {
         String sql = "WITH iv AS (\n" +
-                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY ScheduleAt DESC, Id DESC) rn\n" +
+                "  SELECT ROW_NUMBER() OVER (PARTITION BY ApplicationID, RecruiterID, SeekerID ORDER BY CreatedAt DESC, Id DESC) rn\n" +
                 "  FROM [dbo].[Interviews]\n" +
                 "  WHERE RecruiterID = ? AND Status = ?\n" +
                 ") SELECT COUNT(*) FROM iv WHERE rn = 1";
@@ -250,7 +249,7 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
     public List<Interviews> findHistoryByInterviewId(int interviewId) {
         Integer appId = getApplicationIdByInterviewId(interviewId);
         if (appId == null) return java.util.Collections.emptyList();
-        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [ApplicationID] = ? ORDER BY [ScheduleAt] DESC, [Id] DESC";
+        String sql = "SELECT * FROM [dbo].[Interviews] WHERE [ApplicationID] = ? ORDER BY [CreatedAt] DESC, [Id] DESC";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("ApplicationID", appId);
         return queryGenericDAO(Interviews.class, sql, parameterMap);
@@ -301,11 +300,6 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
         parameterMap.put("Status", interviewStatus);
         parameterMap.put("Id", interviewId);
         boolean ok = updateGenericDAO(sql, parameterMap);
-
-        Integer appId = getApplicationIdByInterviewId(interviewId);
-        if (ok && appId != null) {
-            new ApplicationDAO().ChangeStatusApplication(appId, 5);
-        }
         return ok;
     }
 
@@ -317,11 +311,6 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
         parameterMap.put("Reason", reason);
         parameterMap.put("Id", interviewId);
         boolean ok = updateGenericDAO(sql, parameterMap);
-
-        Integer appId = getApplicationIdByInterviewId(interviewId);
-        if (ok && appId != null) {
-            new ApplicationDAO().ChangeStatusApplication(appId, 5);
-        }
         return ok;
     }
 
@@ -331,11 +320,6 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
         parameterMap.put("Status", interviewAcceptStatus);
         parameterMap.put("Id", interviewId);
         boolean ok = updateGenericDAO(sql, parameterMap);
-
-        Integer appId = getApplicationIdByInterviewId(interviewId);
-        if (ok && appId != null) {
-            new ApplicationDAO().ChangeStatusApplication(appId, 4);
-        }
         return ok;
     }
 
@@ -345,11 +329,6 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
         parameterMap.put("Status", interviewRejectStatus);
         parameterMap.put("Id", interviewId);
         boolean ok = updateGenericDAO(sql, parameterMap);
-
-        Integer appId = getApplicationIdByInterviewId(interviewId);
-        if (ok && appId != null) {
-            new ApplicationDAO().ChangeStatusApplication(appId, 6);
-        }
         return ok;
     }
 
@@ -360,11 +339,8 @@ public class InterviewsDAO extends GenericDAO<Interviews> {
         parameterMap.put("Reason", reason);
         parameterMap.put("Id", interviewId);
         boolean ok = updateGenericDAO(sql, parameterMap);
-
-        Integer appId = getApplicationIdByInterviewId(interviewId);
-        if (ok && appId != null) {
-            new ApplicationDAO().ChangeStatusApplication(appId, 5);
-        }
         return ok;
     }
 }
+
+
