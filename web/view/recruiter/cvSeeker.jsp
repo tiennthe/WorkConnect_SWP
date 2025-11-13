@@ -90,7 +90,7 @@
                     </c:when>
 
                     <c:when test="${fn:endsWith(cv.filePath, '.pdf')}">
-                        <embed src="${pageContext.request.contextPath}/${cv.filePath}" type="application/pdf" width="100%" height="500px" />
+                        <embed src="JobSeeker/${cv.filePath}" type="application/pdf" width="100%" height="500px" />
                     </c:when>
 
 
