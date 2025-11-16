@@ -36,12 +36,37 @@
                         </div>
                         <div class="mb-3">
                             <label for="file" class="form-label">Upload New Photo</label>
-                            <input type="file" class="form-control" id="file" 
+                            <input type="file" class="form-control" id="file"
                                    name="avatar"
                                    accept=".png, .jpg, .jpeg"
-                                   onchange="previewImage(event)">
-
+                                   onchange="validateImage(event)">
                         </div>
+
+                        <script>
+                            function validateImage(event) {
+                                const file = event.target.files[0];
+                                if (!file)
+                                    return;
+
+                                const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
+
+                                // Kiểm tra MIME type
+                                if (!allowedTypes.includes(file.type)) {
+                                    alert("Only PNG, JPG or JPEG files are allowed!");
+                                    event.target.value = ""; // clear file input
+                                    return;
+                                }
+
+                                // Kiểm tra dung lượng (ví dụ: tối đa 2MB)
+                                const maxSize = 2 * 1024 * 1024;
+                                if (file.size > maxSize) {
+                                    alert("File size must be less than 2MB!");
+                                    event.target.value = "";
+                                    return;
+                                }
+                            }
+                        </script>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="lname" class="form-label">Last Name</label>

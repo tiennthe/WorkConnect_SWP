@@ -492,6 +492,7 @@ public class AuthenticationController extends HttpServlet {
                 // Lấy đường dẫn tương đối của ảnh để lưu vào database
                 imagePath = request.getContextPath() + "/images/" + image.getName();
             }
+            
 
             // Lấy session và đối tượng Account hiện tại
             HttpSession session = request.getSession();
@@ -510,6 +511,41 @@ public class AuthenticationController extends HttpServlet {
             if (imagePath != null) {
                 accountEdit.setAvatar(imagePath);
             }
+            if (part != null && part.getSize() > 0) {
+
+    String fileName = part.getSubmittedFileName().toLowerCase();
+
+    // Chỉ cho phép PNG, JPG, JPEG
+    if (!fileName.endsWith(".png") 
+            && !fileName.endsWith(".jpg") 
+            && !fileName.endsWith(".jpeg")) {
+
+        request.setAttribute("errorsMessage", 
+            List.of("Only PNG, JPG, JPEG files are allowed!")
+        );
+
+        if (accountEdit.getRoleId() == 2) {
+            return "view/recruiter/editRecruiterProfile.jsp";
+        }
+        return "view/user/editUserProfile.jsp";
+    }
+
+    // Optional: kiểm tra size (ví dụ 2MB)
+    if (part.getSize() > 2 * 1024 * 1024) {
+        request.setAttribute("errorsMessage",
+            List.of("File size must be less than 2MB!")
+        );
+
+        if (accountEdit.getRoleId() == 2) {
+            return "view/recruiter/editRecruiterProfile.jsp";
+        }
+        return "view/user/editUserProfile.jsp";
+    }
+
+    // Nếu ok, lưu ảnh
+   
+}
+
 
             // Kiểm tra điều kiện hợp lệ cho ngày sinh và số điện thoại
             List<String> errorsMessage = new ArrayList<>();
