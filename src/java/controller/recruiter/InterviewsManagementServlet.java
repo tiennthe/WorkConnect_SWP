@@ -57,6 +57,10 @@ public class InterviewsManagementServlet extends HttpServlet {
             case "reschedule":
                 handleReschedule(request, response);
                 break;
+                case "reject":
+                handleReject(request, response);
+                break;
+          
             default:
                 response.sendRedirect(request.getContextPath() + "/interviewsManagement");
         }
@@ -174,6 +178,42 @@ public class InterviewsManagementServlet extends HttpServlet {
         }
         response.sendRedirect(request.getContextPath() + "/interviewsManagement?action=details&id=" + interviewId + (ok ? "&success=confirmed" : "&error=update"));
     }
+    private void handleReject(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    Integer recruiterId = getRecruiterId(request.getSession());
+    if (recruiterId == null) {
+        response.sendRedirect(request.getContextPath() + "/view/authen/login.jsp");
+        return;
+    }
+
+    int interviewId = Integer.parseInt(request.getParameter("id"));
+    String reason = request.getParameter("reason");
+
+    Interviews current = interviewsDAO.findById(interviewId);
+    if (current == null || current.getRecruiterID() != recruiterId) {
+        response.sendRedirect(request.getContextPath() + "/interviewsManagement?error=notfound");
+        return;
+    }
+
+    // Update status of interview = 3 (Rejected)
+    boolean ok = interviewsDAO.updateStatus(interviewId, 3);
+
+    if (ok) {
+        // Update application status (6 = rejected)
+        applicationDAO.ChangeStatusApplication(current.getApplicationID(), 6);
+
+        // Gửi email
+        notifySeeker(request, interviewId, "rejected", null, reason);
+
+        response.sendRedirect(
+                request.getContextPath() + "/interviewsManagement?action=details&id=" + interviewId + "&success=rejected"
+        );
+    } else {
+        response.sendRedirect(
+                request.getContextPath() + "/interviewsManagement?action=details&id=" + interviewId + "&error=update"
+        );
+    }
+}
+
 
     private void handleReschedule(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Integer recruiterId = getRecruiterId(request.getSession());
@@ -253,6 +293,10 @@ public class InterviewsManagementServlet extends HttpServlet {
             if (reason != null && !reason.trim().isEmpty()) {
                 body.append("<br>Reason: ").append(escapeHtml(reason));
             }
+            else if ("rejected".equals(action)) {
+    body.append("Your interview has been rejected by the recruiter.");
+}
+
             String baseUrl = request.getScheme() + "://" + request.getServerName()
                     + ((request.getServerPort() == 80 || request.getServerPort() == 443) ? "" : ":" + request.getServerPort())
                     + request.getContextPath();

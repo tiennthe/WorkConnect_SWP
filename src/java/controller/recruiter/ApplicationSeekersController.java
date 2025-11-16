@@ -250,7 +250,7 @@ public class ApplicationSeekersController extends HttpServlet {
             }
 
             // Nội dung email mẫu
-            String subject = "[" + companyName + "] Notification about the job you applied for";
+            String subject = "[" + companyName + "] Notification about the job you applied ";
             String greeting = "Dear " + application.getJobSeeker().getAccount().getFullName() + ",<br><br>";
             String footer = "<br><br>Best regards,<br>Thank you very much.";
 
